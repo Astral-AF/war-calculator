@@ -5,22 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#0a0b1e">
-    <title>غرفة عمليات الحرب الأخيرة</title>
+    <meta name="apple-mobile-web-app-title" content="حاسبة الحرب">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>حاسبة الحرب الأخيرة | Last War</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;500;700;900&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --primary-gold: #FFD700;
-            --primary-gold-glow: rgba(255, 215, 0, 0.5);
-            --accent-red: #ff3333;
-            --accent-blue: #3388ff;
-            --bg-dark: #0a0b1e;
-            --glass-bg: rgba(20, 30, 50, 0.65);
+            --primary: #FFD700; /* اللون الذهبي المميز */
+            --accent: #E94560;  /* لون الهجوم */
+            --defense: #4facfe; /* لون الدفاع */
+            --bg-dark: #16213E;
+            --glass: rgba(255, 255, 255, 0.05);
             --glass-border: rgba(255, 255, 255, 0.1);
-            --text-main: #e0e0e0;
-            --neon-glow: 0 0 10px rgba(255, 215, 0, 0.3), 0 0 20px rgba(255, 215, 0, 0.1);
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
         }
 
         * {
@@ -32,142 +34,124 @@
         }
 
         body {
-            background-color: var(--bg-dark);
-            /* خلفية شبكية متحركة */
+            background-color: #0f3460;
             background-image: 
-                linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
-                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255, 215, 0, 0.05) 2px, rgba(255, 215, 0, 0.05) 4px),
-                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255, 215, 0, 0.05) 2px, rgba(255, 215, 0, 0.05) 4px);
-            background-size: 100% 100%, 100px 100px, 100px 100px;
-            animation: bgMove 20s linear infinite;
+                radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
             min-height: 100vh;
             color: var(--text-main);
-            padding-bottom: calc(20px + env(safe-area-inset-bottom));
+            padding-bottom: env(safe-area-inset-bottom);
             overflow-x: hidden;
-        }
-
-        @keyframes bgMove {
-            0% { background-position: 0 0, 0 0, 0 0; }
-            100% { background-position: 0 0, 0 100px, 100px 0; }
         }
 
         .container {
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            padding-top: max(30px, env(safe-area-inset-top));
-            position: relative;
-            z-index: 2;
+            padding-top: max(20px, env(safe-area-inset-top));
         }
 
         /* Header Style */
         .header {
             text-align: center;
-            margin-bottom: 35px;
+            margin-bottom: 30px;
             position: relative;
         }
 
         .header h1 {
-            font-size: 2.4rem;
-            background: linear-gradient(to bottom, #FFD700, #ca9a00);
+            font-size: 2.2rem;
+            background: linear-gradient(to right, #FFD700, #FDB931);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-weight: 900;
+            margin-bottom: 5px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
         }
 
         .header p {
-            color: #8899ab;
-            font-size: 0.95rem;
-            margin-top: 5px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
         }
 
-        /* Unit Icons SVG */
-        .unit-icon-svg {
-            width: 24px;
-            height: 24px;
-            vertical-align: middle;
-            margin-left: 8px;
-            fill: currentColor;
+        /* Advantage Bar */
+        .advantage-bar {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+            font-size: 0.8rem;
+            flex-wrap: wrap;
         }
 
-        /* Holographic Glass Cards */
-        .glass-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+        .adv-chip {
+            background: var(--glass);
             border: 1px solid var(--glass-border);
-            border-top: 1px solid rgba(255, 215, 0, 0.2);
+            padding: 5px 12px;
             border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Glass Cards */
+        .glass-card {
+            background: rgba(22, 33, 62, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
             padding: 25px;
             margin-bottom: 25px;
-            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* تأثير ضوئي على البطاقات */
-        .glass-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--primary-gold-glow), transparent);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
         }
 
         .card-title {
             display: flex;
             align-items: center;
-            font-size: 1.5rem;
-            font-weight: 800;
-            margin-bottom: 25px;
+            gap: 10px;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            font-weight: 700;
             padding-bottom: 10px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 2px solid var(--glass-border);
         }
 
-        .attacker .card-title { color: var(--accent-red); text-shadow: 0 0 10px rgba(255, 51, 51, 0.4); }
-        .defender .card-title { color: var(--accent-blue); text-shadow: 0 0 10px rgba(51, 136, 255, 0.4); }
+        .attacker .card-title { color: var(--accent); border-color: rgba(233, 69, 96, 0.3); }
+        .defender .card-title { color: var(--defense); border-color: rgba(79, 172, 254, 0.3); }
 
         /* Inputs */
-        .input-group { margin-bottom: 22px; }
+        .input-group {
+            margin-bottom: 20px;
+        }
 
         label {
             display: block;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             font-size: 0.95rem;
-            color: #b0c4de;
+            color: #ddd;
             font-weight: 600;
-            letter-spacing: 0.5px;
         }
 
         input[type="text"], input[type="number"], select {
             width: 100%;
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(0, 0, 0, 0.3);
             border: 1px solid var(--glass-border);
-            color: #fff;
-            padding: 16px;
+            color: white;
+            padding: 15px;
             border-radius: 12px;
-            font-size: 16px;
+            font-size: 16px; /* Prevents iOS zoom */
             transition: all 0.3s ease;
         }
 
         input:focus, select:focus {
             outline: none;
-            border-color: var(--primary-gold);
-            box-shadow: 0 0 15px var(--primary-gold-glow);
-            background: rgba(0, 0, 0, 0.6);
-        }
-        
-        /* تخصيص خيارات القائمة المنسدلة */
-        select option {
-            background-color: #0a0b1e;
-            color: #fff;
-            padding: 10px;
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.1);
+            background: rgba(0, 0, 0, 0.5);
         }
 
-        /* Advanced Star Selector */
+        /* Custom Star Selector */
         .star-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -175,275 +159,291 @@
         }
 
         .star-btn {
-            background: rgba(255, 215, 0, 0.05);
+            background: rgba(0,0,0,0.3);
             border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 12px 5px;
+            border-radius: 10px;
+            padding: 10px 5px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.2s;
             position: relative;
+            overflow: hidden;
         }
-
-        .star-btn svg { width: 20px; height: 20px; fill: #666; transition: 0.3s; }
-        .star-btn small { display: block; margin-top: 6px; font-size: 0.7rem; color: #888; font-weight: 700; }
 
         .star-btn.active {
-            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 165, 0, 0.2) 100%);
-            border-color: var(--primary-gold);
-            box-shadow: var(--neon-glow);
-            transform: translateY(-3px);
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            border-color: #FFD700;
+            color: #000;
+            transform: translateY(-2px);
+            font-weight: 800;
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
         }
-        
-        .star-btn.active svg { fill: var(--primary-gold); filter: drop-shadow(0 0 5px var(--primary-gold)); }
-        .star-btn.active small { color: var(--primary-gold); }
 
-        /* Advanced Skill Selector */
+        .star-btn span { display: block; font-size: 1.2rem; }
+        .star-btn small { font-size: 0.7rem; display: block; margin-top: 4px; opacity: 0.8; }
+        .star-btn.active small { opacity: 1; font-weight: bold; }
+
+        /* Skill Selector */
         .skill-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
+            gap: 10px;
         }
 
         .skill-btn {
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(0,0,0,0.3);
             border: 1px solid var(--glass-border);
-            border-radius: 15px;
-            padding: 18px 10px;
+            border-radius: 12px;
+            padding: 15px;
             text-align: center;
             cursor: pointer;
             transition: 0.3s;
             display: flex;
             flex-direction: column;
             align-items: center;
-        }
-
-        .skill-icon-container {
-            width: 45px; height: 45px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
             justify-content: center;
-            margin-bottom: 10px;
-            border: 1px solid var(--glass-border);
-            transition: 0.3s;
         }
-        .skill-btn svg { width: 24px; height: 24px; fill: #888; transition: 0.3s; }
-        .skill-name { font-size: 0.9rem; font-weight: 700; color: #aaa; }
 
-        .skill-btn.active .skill-icon-container {
-            background: linear-gradient(45deg, var(--accent-red), #ff6b6b);
-            border-color: transparent;
-            box-shadow: 0 0 20px rgba(255, 51, 51, 0.4);
+        .skill-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 5px 20px rgba(233, 69, 96, 0.4);
         }
-        .skill-btn.active svg { fill: white; }
-        .skill-btn.active .skill-name { color: white; text-shadow: 0 0 10px var(--accent-red); }
 
-        /* Main Action Button */
+        .skill-icon { font-size: 1.5rem; margin-bottom: 5px; }
+        .skill-name { font-size: 0.85rem; font-weight: bold; }
+
+        /* Main Button */
         .action-btn {
             width: 100%;
-            background: linear-gradient(90deg, #FFD700, #FFC107, #FFD700);
-            background-size: 200% auto;
-            color: #0a0b1e;
+            background: linear-gradient(135deg, #FFD700, #FDB931);
+            color: #1a1a2e;
             border: none;
-            padding: 20px;
-            border-radius: 16px;
-            font-size: 1.3rem;
+            padding: 18px;
+            border-radius: 50px;
+            font-size: 1.2rem;
             font-weight: 900;
             cursor: pointer;
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
-            transition: all 0.4s ease;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            animation: pulseBtn 2s infinite;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.2);
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+            margin-top: 10px;
         }
 
-        @keyframes pulseBtn {
-            0% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
-            50% { box-shadow: 0 0 40px rgba(255, 215, 0, 0.5); }
-            100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
+        .action-btn:active {
+            transform: scale(0.98);
         }
 
-        .action-btn:hover { background-position: right center; transform: scale(1.02); }
-        .action-btn:active { transform: scale(0.98); }
+        .action-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(transparent, rgba(255,255,255,0.4), transparent);
+            transform: rotate(45deg);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
 
         /* Results Area */
-        #resultsArea { display: none; }
+        #resultsArea {
+            display: none;
+            animation: slideUp 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
         .result-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
         }
+
         .stat-box {
-            background: rgba(0,0,0,0.3); padding: 20px 15px;
-            border-radius: 15px; text-align: center;
-            border: 1px solid var(--glass-border);
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
         }
+
         .stat-val {
-            font-size: 1.6rem; font-weight: 900; color: var(--primary-gold);
-            text-shadow: 0 0 15px rgba(255, 215, 0, 0.3); margin-top: 8px;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-top: 5px;
         }
-        .stat-label { font-size: 0.85rem; color: #8899ab; }
+
+        .stat-label { font-size: 0.8rem; color: #aaa; }
+
+        .log-container {
+            max-height: 250px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.4);
+            border-radius: 12px;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            margin-top: 15px;
+        }
+
+        .log-entry {
+            border-left: 3px solid var(--accent);
+            padding-left: 10px;
+            margin-bottom: 8px;
+            color: #ddd;
+        }
+        .log-entry.crit { border-color: var(--primary); color: #fff; background: rgba(255,215,0,0.1); }
 
         /* Profile Footer */
         .profile-footer {
-            margin-top: 60px;
+            margin-top: 50px;
+            text-align: center;
+            border-top: 1px solid var(--glass-border);
             padding-top: 30px;
-            display: flex;
-            justify-content: center;
             position: relative;
-        }
-        
-        .profile-footer::before {
-            content: ''; position: absolute; top: 0; width: 60%; height: 1px;
-            background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
         }
 
         .profile-card {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            background: linear-gradient(90deg, rgba(255, 215, 0, 0.03), transparent);
-            padding: 15px 30px;
-            border-radius: 60px;
-            border: 1px solid rgba(255, 215, 0, 0.15);
-            backdrop-filter: blur(10px);
-        }
-
-        .profile-img-container {
-            position: relative;
-            margin-left: 20px;
+            background: linear-gradient(90deg, rgba(255,215,0,0.05), transparent);
+            padding: 15px 25px;
+            border-radius: 50px;
+            border: 1px solid rgba(255,215,0,0.2);
         }
 
         .profile-img {
-            width: 70px; height: 70px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
-            /* لون ذهبي متوهج حول الصورة */
-            border: 3px solid var(--primary-gold);
+            border: 2px solid var(--primary);
             object-fit: cover;
-            box-shadow: 0 0 25px rgba(255, 215, 0, 0.4);
+            margin-left: 15px;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
         }
 
-        .profile-info { text-align: right; }
-        .profile-name {
-            display: block; font-size: 1.3rem; font-weight: 900;
-            color: var(--primary-gold); letter-spacing: 1px;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        .profile-info {
+            text-align: right;
         }
-        .profile-role { font-size: 0.85rem; color: #8899ab; letter-spacing: 2px; text-transform: uppercase; }
-        
-        /* Helper Text for Previews */
+
+        .profile-name {
+            display: block;
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: var(--primary);
+            letter-spacing: 1px;
+        }
+
+        .profile-role {
+            font-size: 0.8rem;
+            color: #888;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
         .helper-text {
-            text-align: left; font-size: 0.8rem; color: var(--primary-gold);
-            margin-top: 5px; padding-left: 5px; opacity: 0.8;
+            font-size: 0.75rem;
+            color: var(--primary);
+            margin-top: 5px;
+            text-align: right;
         }
     </style>
 </head>
 <body>
 
-<svg style="display: none;">
-    <symbol id="icon-tank" viewBox="0 0 24 24">
-        <path d="M22,15V18H2V15H4V11H7.79C8.65,11.71 10.31,13 12,13C13.69,13 15.35,11.71 16.21,11H20V15H22M12,3C14.64,3 17,4.69 17.8,7H22V9H18.85C18.94,9.64 19,10.31 19,11H17C17,7 12,7 12,7V3M4,9H7C7,10.31 7.06,10.97 7.15,11.61C6.31,12.31 4.64,13.61 3,13.61C3.13,12.04 3.46,10.5 4,9Z" />
-    </symbol>
-    <symbol id="icon-plane" viewBox="0 0 24 24">
-        <path d="M21,16V14L13,9V3.5A1.5,1.5 0 0,0 11.5,2A1.5,1.5 0 0,0 10,3.5V9L2,14V16L10,13.5V19L8,20.5V22L11.5,21L15,22V20.5L13,19V13.5L21,16Z" />
-    </symbol>
-    <symbol id="icon-missile" viewBox="0 0 24 24">
-        <path d="M13.62,13.33L16.78,16.5C16.57,17.09 16.25,17.53 15.85,17.83L16.5,22.21L13.3,19.17C12.61,19.28 12.13,19.35 11.85,19.38L12,15L13.62,13.33M9.5,13C8.26,11.77 7.29,10.33 6.59,8.66C9,8.85 11.43,9.44 13.77,10.41L18.36,5.71C18.64,5.43 19.09,5.43 19.37,5.71C19.65,5.99 19.65,6.44 19.37,6.72L14.65,11.44C15.54,13.5 16,15.59 16,17.68C13.97,16.62 11.77,15.27 9.5,13M11,7L10,3L7.71,5.29C8.5,5.72 9.31,6.27 10.16,6.9L11,7M5.29,7.71L3,10L7,11L7.69,10.16C7.06,9.31 6.5,8.5 6.08,7.71L5.29,7.71Z" />
-    </symbol>
-    <symbol id="icon-sword" viewBox="0 0 24 24">
-        <path d="M20.71,4.63L19.37,3.29C19,2.9 18.35,2.9 17.96,3.29L9,12.25L11.75,15L20.71,6.04C21.1,5.65 21.1,5 20.71,4.63M7,14.25L9.75,17L5,21.75L2.25,19L7,14.25M13,9.41L14.59,11L6.59,19H5V17.41L13,9.41Z" />
-    </symbol>
-    <symbol id="icon-shield" viewBox="0 0 24 24">
-        <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1Z" />
-    </symbol>
-    <symbol id="icon-star" viewBox="0 0 24 24">
-        <path d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z" />
-    </symbol>
-    <symbol id="icon-skill-normal" viewBox="0 0 24 24"><path d="M19,3H5C3.89,3 3,3.89 3,5V19C3,20.11 3.89,21 5,21H19C20.11,21 21,20.11 21,19V5C21,3.89 20.11,3 19,3M19,19H5V5H19V19Z"/></symbol>
-    <symbol id="icon-skill-special" viewBox="0 0 24 24"><path d="M12,2C11.5,2 11,2.19 10.59,2.59L2.59,10.59C1.8,11.37 1.8,12.63 2.59,13.41L10.59,21.41C11,21.81 11.5,22 12,22C12.5,22 13,21.81 13.41,21.41L21.41,13.41C22.2,12.63 22.2,11.37 21.41,10.59L13.41,2.59C13,2.19 12.5,2 12,2M12,4L20,12L12,20L4,12L12,4M11,7V10H8V14H11V17H13V14H16V10H13V7H11Z"/></symbol>
-    <symbol id="icon-skill-ultimate" viewBox="0 0 24 24"><path d="M12,8.5L14.91,12.41L18.5,7.5L13.41,17.59L12,19L10.59,17.59L5.5,7.5L9.09,12.41L12,8.5M12,2C17.5,2 22,6.5 22,12C22,17.5 17.5,22 12,22C6.5,22 2,17.5 2,12C2,6.5 6.5,2 12,2Z"/></symbol>
-</svg>
-
 <div class="container">
     <header class="header">
-        <h1>غرفة عمليات الحرب الأخيرة</h1>
-        <p>نظام محاكاة المعارك الاستراتيجي | Tactical Combat Sim</p>
+        <h1>حاسبة الحرب الأخيرة</h1>
+        <p>محاكاة قتالية متقدمة | Advanced Combat Sim</p>
+        <div class="advantage-bar">
+            <div class="adv-chip">🚀 > ✈️</div>
+            <div class="adv-chip">✈️ > 🟫</div>
+            <div class="adv-chip">🟫 > 🚀</div>
+        </div>
     </header>
 
     <div class="glass-card attacker">
         <div class="card-title">
-            <svg class="unit-icon-svg" style="margin-left: 10px; fill: var(--accent-red);"><use xlink:href="#icon-sword"/></svg>
-             بيانات الهجوم
+            <span>🗡️</span> قوة الهجوم
         </div>
 
         <div class="input-group">
-            <label>نوع الوحدة المهاجمة</label>
-            <div style="position: relative;">
-                <select id="attackerType" style="padding-left: 40px;">
-                    <option value="tank">دبابة قتالية (Tank)</option>
-                    <option value="plane">طائرة حربية (Aircraft)</option>
-                    <option value="missile">قاذفة صواريخ (Missile)</option>
-                </select>
-                <svg class="unit-icon-svg" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); opacity: 0.7;"><use xlink:href="#icon-tank"/></svg>
-            </div>
+            <label>نوع الوحدة</label>
+            <select id="attackerType">
+                <option value="tank">🟫 دبابة (Tank)</option>
+                <option value="plane">✈️ طائرة (Aircraft)</option>
+                <option value="missile">🚀 صاروخ (Missile)</option>
+            </select>
         </div>
 
         <div class="input-group">
-            <label>قوة الهجوم الأساسية (Attack)</label>
-            <input type="text" id="attack" value="65.2K" placeholder="مثال: 120K">
+            <label>قوة الهجوم (Attack)</label>
+            <input type="text" id="attack" value="65.2K" placeholder="مثال: 100K أو 1M">
             <div class="helper-text" id="attackPreview">65,200</div>
         </div>
 
         <div class="input-group">
-            <label>مستوى الترقية (Star Rank)</label>
+            <label>مستوى النجوم (Star Level)</label>
             <div class="star-grid">
                 <div class="star-btn active" onclick="selectStars(0, this)">
-                    <svg><use xlink:href="#icon-star"/></svg><small>+30%</small>
+                    <span>⭐</span><small>+30%</small>
                 </div>
                 <div class="star-btn" onclick="selectStars(1, this)">
-                    <svg><use xlink:href="#icon-star"/></svg><small>+70%</small>
+                    <span>2⭐</span><small>+70%</small>
                 </div>
                 <div class="star-btn" onclick="selectStars(2, this)">
-                    <svg><use xlink:href="#icon-star"/></svg><small>+120%</small>
+                    <span>3⭐</span><small>+120%</small>
                 </div>
                 <div class="star-btn" onclick="selectStars(3, this)">
-                    <svg><use xlink:href="#icon-star"/></svg><small>+185%</small>
+                    <span>4⭐</span><small>+185%</small>
                 </div>
                 <div class="star-btn" onclick="selectStars(4, this)">
-                    <svg><use xlink:href="#icon-star"/></svg><small>+270%</small>
+                    <span>5⭐</span><small>+270%</small>
                 </div>
             </div>
         </div>
 
         <div class="input-group">
-            <label>نوع المهارة المستخدمة (Ability)</label>
+            <label>نوع المهارة (Skill)</label>
             <div class="skill-grid">
                 <div class="skill-btn active" onclick="selectSkill(0, this)">
-                    <div class="skill-icon-container"><svg><use xlink:href="#icon-skill-normal"/></svg></div>
+                    <div class="skill-icon">⚔️</div>
                     <div class="skill-name">عادية</div>
                 </div>
                 <div class="skill-btn" onclick="selectSkill(1, this)">
-                    <div class="skill-icon-container"><svg><use xlink:href="#icon-skill-special"/></svg></div>
+                    <div class="skill-icon">🔥</div>
                     <div class="skill-name">خاصة</div>
                 </div>
                 <div class="skill-btn" onclick="selectSkill(2, this)">
-                    <div class="skill-icon-container"><svg><use xlink:href="#icon-skill-ultimate"/></svg></div>
+                    <div class="skill-icon">💥</div>
                     <div class="skill-name">نهائية</div>
                 </div>
             </div>
         </div>
         
         <div class="input-group" id="enemyCountGroup" style="display: none;">
-            <label>عدد الأهداف (AOE Targets)</label>
+            <label>عدد الأعداء (AOE Targets)</label>
             <input type="number" id="enemyCount" value="3" min="1" max="10">
         </div>
 
         <div class="result-grid">
             <div class="input-group">
-                <label>نسبة الحرجة %</label>
+                <label>Crit Rate %</label>
                 <input type="number" id="critChance" value="20">
             </div>
             <div class="input-group">
-                <label>ضرر الحرجة %</label>
+                <label>Crit Dmg %</label>
                 <input type="number" id="critDamage" value="150">
             </div>
         </div>
@@ -451,20 +451,16 @@
 
     <div class="glass-card defender">
         <div class="card-title">
-            <svg class="unit-icon-svg" style="margin-left: 10px; fill: var(--accent-blue);"><use xlink:href="#icon-shield"/></svg>
-             إحصائيات العدو
+            <span>🛡️</span> إحصائيات العدو
         </div>
 
         <div class="input-group">
-            <label>نوع الوحدة المدافعة</label>
-            <div style="position: relative;">
-                <select id="defenderType" style="padding-left: 40px;">
-                    <option value="tank">دبابة قتالية (Tank)</option>
-                    <option value="plane">طائرة حربية (Aircraft)</option>
-                    <option value="missile">قاذفة صواريخ (Missile)</option>
-                </select>
-                 <svg class="unit-icon-svg" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); opacity: 0.7;"><use xlink:href="#icon-tank"/></svg>
-            </div>
+            <label>نوع الوحدة</label>
+            <select id="defenderType">
+                <option value="tank">🟫 دبابة (Tank)</option>
+                <option value="plane">✈️ طائرة (Aircraft)</option>
+                <option value="missile">🚀 صاروخ (Missile)</option>
+            </select>
         </div>
 
         <div class="input-group">
@@ -474,47 +470,50 @@
         </div>
 
         <div class="input-group">
-            <label>الدرع (Defense)</label>
+            <label>الدفاع (Defense)</label>
             <input type="text" id="defense" value="8.4K">
             <div class="helper-text" id="defensePreview">8,400</div>
         </div>
 
         <div class="input-group">
-            <label>مقاومة الضرر (Resist %)</label>
+            <label>مقاومة الضرر (Resistance %)</label>
             <input type="number" id="resistance" value="10">
         </div>
     </div>
 
     <button class="action-btn" onclick="simulateBattle()">
-        تنفيذ المحاكاة القتالية
+        ⚡ بدء المحاكاة ⚡
     </button>
 
-    <div id="resultsArea" style="margin-top: 40px;">
-        <div class="glass-card" style="border-color: var(--primary-gold);">
-            <div class="card-title" style="color: var(--primary-gold); justify-content: center; text-shadow: var(--neon-glow);">
-                نتائج الاشتباك
+    <div id="resultsArea">
+        <div class="glass-card" style="margin-top: 30px; border-color: var(--primary);">
+            <div class="card-title" style="color: var(--primary); justify-content: center;">
+                نتائج المعركة
             </div>
             
-            <div style="text-align: center; margin-bottom: 25px; font-weight: bold; font-size: 1.1rem;" id="typeAdvantageText"></div>
+            <div style="text-align: center; margin-bottom: 20px; font-weight: bold;" id="typeAdvantageText"></div>
 
             <div class="result-grid">
                 <div class="stat-box">
-                    <div class="stat-label">إجمالي الضرر المسبب</div>
+                    <div class="stat-label">إجمالي الضرر</div>
                     <div class="stat-val" id="totalDamage">0</div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-label">عدد الضربات الناجحة</div>
+                    <div class="stat-label">عدد الضربات</div>
                     <div class="stat-val" id="totalHits">0</div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-label">الضربات الحرجة (Crit)</div>
+                    <div class="stat-label">الضربات الحرجة</div>
                     <div class="stat-val" id="criticalHits">0</div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-label">متوسط الضرر للضربة</div>
+                    <div class="stat-label">متوسط الضرر</div>
                     <div class="stat-val" id="avgDamage">0</div>
                 </div>
             </div>
+
+            <div class="log-container" id="battleLog">
+                </div>
         </div>
     </div>
 
@@ -522,31 +521,19 @@
         <div class="profile-card">
             <div class="profile-info">
                 <span class="profile-name">Distopǐa - 1930</span>
-                <span class="profile-role">استراتيجي اللعبة</span>
+                <span class="profile-role">Master Tactician</span>
             </div>
-            <div class="profile-img-container">
-                <img src="https://i.pinimg.com/originals/d0/f6/36/d0f636b1d0308c95b4ffcc75c3df88bc.jpg" alt="Jiraiya Profile" class="profile-img">
-            </div>
+            <img src="image.png" alt="Profile" class="profile-img">
         </div>
     </div>
 </div>
 
 <script>
-    /* Logic Script - (نفس المنطق السابق مع تحديثات بسيطة) */
+    /* Logic Script */
     let selectedStarLevel = 0;
     let selectedSkillType = 0;
     const starBonuses = [0.30, 0.70, 1.20, 1.85, 2.70];
     const skillMultipliers = [1.0, 3.45, 6.05];
-    
-    // تحديث الأيقونات في القوائم المنسدلة
-    const iconMap = { 'tank': '#icon-tank', 'plane': '#icon-plane', 'missile': '#icon-missile' };
-    function updateSelectIcons() {
-        document.querySelector('#attackerType + svg use').setAttribute('xlink:href', iconMap[document.getElementById('attackerType').value]);
-        document.querySelector('#defenderType + svg use').setAttribute('xlink:href', iconMap[document.getElementById('defenderType').value]);
-    }
-    document.getElementById('attackerType').addEventListener('change', updateSelectIcons);
-    document.getElementById('defenderType').addEventListener('change', updateSelectIcons);
-    updateSelectIcons(); // تشغيل أولي
 
     function selectStars(index, el) {
         selectedStarLevel = index;
@@ -567,7 +554,7 @@
         val = val.toString().toUpperCase().replace(/,/g, '');
         if(val.includes('M')) return parseFloat(val) * 1000000;
         if(val.includes('K')) return parseFloat(val) * 1000;
-        return parseFloat(val) || 0;
+        return parseFloat(val);
     }
 
     function formatNum(num) {
@@ -580,6 +567,7 @@
         document.getElementById('defensePreview').innerText = formatNum(parseK(document.getElementById('defense').value));
     }
 
+    // Live update for inputs
     ['attack', 'health', 'defense'].forEach(id => {
         document.getElementById(id).addEventListener('input', updatePreviews);
     });
@@ -591,18 +579,19 @@
         let atk = parseK(document.getElementById('attack').value);
         let hp = parseK(document.getElementById('health').value);
         let def = parseK(document.getElementById('defense').value);
-        let res = parseFloat(document.getElementById('resistance').value) || 0;
-        let critRate = parseFloat(document.getElementById('critChance').value) || 0;
-        let critDmgPct = parseFloat(document.getElementById('critDamage').value) || 150;
+        let res = parseFloat(document.getElementById('resistance').value) / 100;
+        let critRate = parseFloat(document.getElementById('critChance').value) / 100;
+        let critDmg = parseFloat(document.getElementById('critDamage').value) / 100;
 
         if(atk <= 0 || hp <= 0) {
-            alert("يرجى إدخال قيم صحيحة للهجوم والصحة");
+            alert("تأكد من إدخال القيم بشكل صحيح");
             return;
         }
 
         // Type Logic
         let typeMod = 1.0;
-        let typeText = "<span style='color:#aaa'>⚖️ تكافؤ في نوع الوحدات</span>";
+        let typeText = "تكافؤ في النوع ⚖️";
+        let typeColor = "#ddd";
 
         if(
             (attType === 'tank' && defType === 'missile') ||
@@ -610,57 +599,76 @@
             (attType === 'missile' && defType === 'plane')
         ) {
             typeMod = 1.2;
-            typeText = "<span style='color:#4caf50'>🔥 تفوق نوعي! (+20% ضرر إضافي)</span>";
+            typeText = "تفوق نوعي! (+20% ضرر) 🔥";
+            typeColor = "#4caf50";
         } else if (
             (attType === 'tank' && defType === 'plane') ||
             (attType === 'plane' && defType === 'missile') ||
             (attType === 'missile' && defType === 'tank')
         ) {
             typeMod = 0.8;
-            typeText = "<span style='color:#ff4444'>🛡️ ضعف نوعي! (-20% خفض ضرر)</span>";
+            typeText = "ضعف نوعي! (-20% ضرر) ⚠️";
+            typeColor = "#ff4444";
         }
 
-        document.getElementById('typeAdvantageText').innerHTML = typeText;
+        const advTextEl = document.getElementById('typeAdvantageText');
+        advTextEl.innerText = typeText;
+        advTextEl.style.color = typeColor;
 
-        // Calculation
+        // Base Calculation
         let starBonus = starBonuses[selectedStarLevel];
         let skillMult = skillMultipliers[selectedSkillType];
         
+        // Base Damage Formula
         let baseDmg = (atk - def);
-        if(baseDmg < 1) baseDmg = 1; 
+        if(baseDmg < 1) baseDmg = 1; // Min damage
         
-        baseDmg = baseDmg * (1 + starBonus) * skillMult * typeMod * (1 - (res/100));
+        // Apply Modifiers
+        baseDmg = baseDmg * (1 + starBonus) * skillMult * typeMod * (1 - res);
 
         let totalDmg = 0;
         let hits = 0;
         let crits = 0;
+        let logHTML = "";
         let turns = 0;
         
-        while(hp > 0 && turns < 2000) {
+        // Simulation Loop
+        while(hp > 0 && turns < 1000) {
             turns++;
-            let isCrit = Math.random() * 100 < critRate;
+            let isCrit = Math.random() < critRate;
             let finalDmg = baseDmg;
             
             if(isCrit) {
-                finalDmg *= (critDmgPct / 100);
+                finalDmg *= critDmg;
                 crits++;
             }
 
+            // Ultimate Multi-hit simulation (simplified logic based on user previous code)
             if(selectedSkillType === 2) {
-                 // محاكاة بسيطة للضرر الجماعي للمهارة النهائية
-                 // في الواقع قد نحتاج لضرب الضرر بعدد الأعداء، لكن هنا نحاكي إصابة هدف واحد حتى الموت
+                let enemies = parseInt(document.getElementById('enemyCount').value) || 1;
+                // For simplicity in log, we show damage to main target but track stats
+                // Or assume single target HP pool for this specific calculator context
             }
 
             hp -= finalDmg;
             totalDmg += finalDmg;
             hits++;
+
+            if(turns <= 50) { // Limit log display
+                logHTML += `<div class="log-entry ${isCrit ? 'crit' : ''}">
+                    #${turns} | ${isCrit ? '💥' : '⚔️'} -${formatNum(finalDmg)} 
+                    <span style="float:left; opacity:0.6">${hp > 0 ? formatNum(hp) : 'مات'} HP</span>
+                </div>`;
+            }
         }
 
         document.getElementById('totalDamage').innerText = (totalDmg >= 1000000) ? (totalDmg/1000000).toFixed(2) + "M" : formatNum(totalDmg);
-        document.getElementById('totalHits').innerText = formatNum(hits);
-        document.getElementById('criticalHits').innerText = formatNum(crits);
-        document.getElementById('avgDamage').innerText = formatNum(totalDmg / (hits || 1));
+        document.getElementById('totalHits').innerText = hits;
+        document.getElementById('criticalHits').innerText = crits;
+        document.getElementById('avgDamage').innerText = formatNum(totalDmg / hits);
+        document.getElementById('battleLog').innerHTML = logHTML + (turns > 50 ? '<div style="text-align:center; padding:5px">...</div>' : '');
 
+        // Show Results
         const resArea = document.getElementById('resultsArea');
         resArea.style.display = 'block';
         resArea.scrollIntoView({behavior: 'smooth'});
