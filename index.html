@@ -1,475 +1,734 @@
 <!DOCTYPE html>
+
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="حاسبة الحرب Pro">
     <meta name="theme-color" content="#667eea">
-    <title>حاسبة الحرب Pro Mobile</title>
+    <title>حاسبة الحرب الأخيرة Pro Max</title>
+
+```
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+    :root {
+        --primary: #667eea;
+        --primary-dark: #5a6fd6;
+        --accent: #764ba2;
+        --bg-body: #f0f2f5;
+        --bg-card: #ffffff;
+        --text-main: #2d3748;
+        --text-sub: #718096;
+        --border: #e2e8f0;
+        --success: #48bb78;
+        --danger: #f56565;
+        --warning: #ed8936;
+        --info: #4299e1;
+        --radius: 16px;
+    }
+
+    [data-theme="dark"] {
+        --primary: #7f9cf5;
+        --primary-dark: #667eea;
+        --accent: #5a67d8;
+        --bg-body: #1a202c;
+        --bg-card: #2d3748;
+        --text-main: #f7fafc;
+        --text-sub: #a0aec0;
+        --border: #4a5568;
+    }
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-tap-highlight-color: transparent;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+        background: var(--bg-body);
+        color: var(--text-main);
+        padding-bottom: 80px;
+        transition: background 0.3s;
+    }
+
+    /* --- الهيدر --- */
+    .header {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        color: white;
+        padding: 20px 15px;
+        padding-top: max(20px, env(safe-area-inset-top));
+        text-align: center;
+        border-bottom-left-radius: 25px;
+        border-bottom-right-radius: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        position: relative;
+        margin-bottom: 20px;
+    }
+
+    .header h1 {
+        font-size: 1.4rem;
+        margin-bottom: 5px;
+    }
+
+    .theme-toggle {
+        position: absolute;
+        top: 20px;
+        left: 15px;
+        background: rgba(255,255,255,0.2);
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        cursor: pointer;
+        backdrop-filter: blur(5px);
+    }
+
+    /* --- التبويبات --- */
+    .tabs-wrapper {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: var(--bg-body);
+        padding: 10px 0;
+        margin: 0 10px;
+    }
+
+    .tabs {
+        display: flex;
+        overflow-x: auto;
+        gap: 10px;
+        padding: 5px;
+        background: var(--bg-card);
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        scrollbar-width: none;
+    }
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    
-    <style>
-        :root {
-            --primary: #667eea;
-            --primary-dark: #5a6fd6;
-            --accent: #764ba2;
-            --bg-body: #f0f2f5;
-            --bg-card: #ffffff;
-            --text-main: #2d3748;
-            --text-sub: #718096;
-            --border: #e2e8f0;
-            --success: #48bb78;
-            --danger: #f56565;
-            --radius: 16px;
-        }
+    .tabs::-webkit-scrollbar { display: none; }
 
-        [data-theme="dark"] {
-            --primary: #7f9cf5;
-            --primary-dark: #667eea;
-            --accent: #5a67d8;
-            --bg-body: #1a202c;
-            --bg-card: #2d3748;
-            --text-main: #f7fafc;
-            --text-sub: #a0aec0;
-            --border: #4a5568;
-        }
+    .tab {
+        flex: 0 0 auto;
+        padding: 10px 20px;
+        border: none;
+        background: transparent;
+        color: var(--text-sub);
+        font-weight: 600;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-tap-highlight-color: transparent;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+    .tab.active {
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
 
-        body {
-            background: var(--bg-body);
-            color: var(--text-main);
-            padding-bottom: 80px; /* مساحة للأزرار السفلية إن وجدت */
-            transition: background 0.3s;
-        }
+    /* --- المحتوى --- */
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }
 
-        /* --- الهيدر --- */
-        .header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-            color: white;
-            padding: 20px 15px;
-            padding-top: max(20px, env(safe-area-inset-top)); /* دعم نوتش الآيفون */
-            text-align: center;
-            border-bottom-left-radius: 25px;
-            border-bottom-right-radius: 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            position: relative;
-            margin-bottom: 20px;
-        }
+    .tab-content {
+        display: none;
+        animation: slideUp 0.3s ease-out;
+    }
 
-        .header h1 {
-            font-size: 1.4rem;
-            margin-bottom: 5px;
-        }
+    .tab-content.active { display: block; }
 
-        .theme-toggle {
-            position: absolute;
-            top: 20px;
-            left: 15px;
-            background: rgba(255,255,255,0.2);
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            cursor: pointer;
-            backdrop-filter: blur(5px);
-        }
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 
-        /* --- التبويبات (Tabs) --- */
-        .tabs-wrapper {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: var(--bg-body);
-            padding: 10px 0;
-            margin: 0 10px;
-        }
+    .card {
+        background: var(--bg-card);
+        border-radius: var(--radius);
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border: 1px solid var(--border);
+    }
 
-        .tabs {
-            display: flex;
-            overflow-x: auto;
-            gap: 10px;
-            padding: 5px;
-            background: var(--bg-card);
-            border-radius: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            scrollbar-width: none; /* إخفاء شريط التمرير لفايرفوكس */
-        }
-        
-        .tabs::-webkit-scrollbar { display: none; } /* إخفاء شريط التمرير للكروم */
+    .card h2 {
+        font-size: 1.1rem;
+        color: var(--primary);
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
 
-        .tab {
-            flex: 0 0 auto;
-            padding: 10px 20px;
-            border: none;
-            background: transparent;
-            color: var(--text-sub);
-            font-weight: 600;
-            border-radius: 10px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
+    /* --- المدخلات --- */
+    .input-group { margin-bottom: 20px; }
 
-        .tab.active {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-        }
+    label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--text-sub);
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
 
-        /* --- المحتوى --- */
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0 15px;
-        }
+    input[type="text"], input[type="number"], select {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid var(--border);
+        border-radius: 12px;
+        background: var(--bg-body);
+        color: var(--text-main);
+        font-size: 16px;
+        transition: border-color 0.3s;
+        appearance: none;
+    }
 
-        .tab-content {
-            display: none;
-            animation: slideUp 0.3s ease-out;
-        }
+    input:focus, select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+    }
 
-        .tab-content.active { display: block; }
+    .preview-box {
+        font-size: 0.8rem;
+        color: var(--primary);
+        margin-top: 6px;
+        padding: 8px 12px;
+        background: rgba(102, 126, 234, 0.1);
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
 
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+    /* --- النجوم والمهارات --- */
+    .grid-select {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+        gap: 8px;
+    }
 
-        .card {
-            background: var(--bg-card);
-            border-radius: var(--radius);
-            padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            border: 1px solid var(--border);
-        }
+    .select-item {
+        background: var(--bg-body);
+        border: 2px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 5px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 65px;
+    }
 
-        .card h2 {
-            font-size: 1.1rem;
-            color: var(--primary);
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+    .select-item.selected {
+        border-color: var(--primary);
+        background: rgba(102, 126, 234, 0.15);
+        color: var(--primary);
+        transform: scale(1.05);
+    }
 
-        /* --- المدخلات --- */
-        .input-group { margin-bottom: 20px; }
+    .select-item span { font-size: 1.2rem; display: block; margin-bottom: 4px; }
+    .select-item small { font-size: 0.7rem; font-weight: bold; }
 
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--text-sub);
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
+    /* --- الأزرار --- */
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 25px;
+    }
 
-        /* تكبير الخط لـ 16px لمنع الزووم في الآيفون */
-        input[type="text"], input[type="number"], select {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            background: var(--bg-body);
-            color: var(--text-main);
-            font-size: 16px; 
-            transition: border-color 0.3s;
-            appearance: none;
-        }
+    button.btn-lg {
+        width: 100%;
+        padding: 16px;
+        border: none;
+        border-radius: 14px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transition: transform 0.2s;
+    }
 
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
-        }
+    button.btn-lg:active { transform: scale(0.98); }
 
-        .preview-box {
-            font-size: 0.8rem;
-            color: var(--primary);
-            margin-top: 6px;
-            display: flex;
-            justify-content: flex-end;
-        }
+    .btn-primary { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; }
+    .btn-secondary { background: var(--bg-card); color: var(--text-main); border: 2px solid var(--border); }
+    .btn-success { background: var(--success); color: white; }
 
-        /* --- اختيار النجوم والمهارات --- */
-        .grid-select {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-            gap: 8px;
-        }
+    /* --- النتائج --- */
+    .type-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
 
-        .select-item {
-            background: var(--bg-body);
-            border: 2px solid var(--border);
-            border-radius: 10px;
-            padding: 10px 5px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
+    .type-badge.advantage {
+        background: rgba(72, 187, 120, 0.2);
+        color: var(--success);
+        border: 2px solid var(--success);
+    }
 
-        .select-item.selected {
-            border-color: var(--primary);
-            background: rgba(102, 126, 234, 0.1);
-            color: var(--primary);
-        }
+    .type-badge.disadvantage {
+        background: rgba(245, 101, 101, 0.2);
+        color: var(--danger);
+        border: 2px solid var(--danger);
+    }
 
-        .select-item span { font-size: 1.2rem; display: block; margin-bottom: 4px; }
-        .select-item small { font-size: 0.7rem; font-weight: bold; }
+    .type-badge.neutral {
+        background: rgba(237, 137, 54, 0.2);
+        color: var(--warning);
+        border: 2px solid var(--warning);
+    }
 
-        /* --- الأزرار --- */
-        .action-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 25px;
-        }
+    .stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 15px;
+    }
 
-        button.btn-lg {
-            width: 100%;
-            padding: 16px;
-            border: none;
-            border-radius: 14px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
-        }
+    .stat-box {
+        background: var(--bg-body);
+        padding: 15px;
+        border-radius: 12px;
+        text-align: center;
+        border: 1px solid var(--border);
+    }
 
-        button.btn-lg:active { transform: scale(0.98); }
+    .stat-val { font-size: 1.3rem; font-weight: bold; color: var(--text-main); }
+    .stat-lbl { font-size: 0.8rem; color: var(--text-sub); margin-top: 5px; }
 
-        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; }
-        .btn-secondary { background: var(--bg-card); color: var(--text-main); border: 2px solid var(--border); }
-        .btn-success { background: var(--success); color: white; }
+    .battle-log {
+        max-height: 300px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        margin-top: 20px;
+        padding: 10px;
+        background: var(--bg-body);
+        border-radius: 12px;
+    }
 
-        /* --- النتائج --- */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 15px;
-        }
+    .log-entry {
+        padding: 10px;
+        margin-bottom: 8px;
+        border-radius: 8px;
+        border-right: 4px solid var(--primary);
+        background: var(--bg-card);
+        font-size: 0.85rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
 
-        .stat-box {
-            background: var(--bg-body);
-            padding: 15px;
-            border-radius: 12px;
-            text-align: center;
-        }
+    .log-entry.critical {
+        border-right-color: var(--warning);
+        background: rgba(237, 137, 54, 0.1);
+    }
 
-        .stat-val { font-size: 1.3rem; font-weight: bold; color: var(--text-main); }
-        .stat-lbl { font-size: 0.8rem; color: var(--text-sub); margin-top: 5px; }
+    .vs-badge {
+        background: var(--text-sub);
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin: -10px auto 10px;
+        border: 4px solid var(--bg-card);
+        position: relative;
+        z-index: 2;
+    }
 
-        /* --- المقارنة --- */
-        .vs-badge {
-            background: var(--text-sub);
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            margin: -10px auto 10px;
-            border: 4px solid var(--bg-card);
-            position: relative;
-            z-index: 2;
-        }
-    </style>
+    .chart-wrapper {
+        height: 250px;
+        position: relative;
+        margin: 15px 0;
+    }
+
+    .saved-item {
+        padding: 12px;
+        margin-bottom: 10px;
+        background: var(--bg-card);
+        border: 2px solid var(--border);
+        border-radius: 12px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.2s;
+    }
+
+    .saved-item:active {
+        transform: scale(0.98);
+        border-color: var(--primary);
+    }
+
+    .delete-btn {
+        background: var(--danger);
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        cursor: pointer;
+    }
+
+    .info-tooltip {
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        background: var(--primary);
+        color: white;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 18px;
+        font-size: 11px;
+        margin-right: 5px;
+        cursor: help;
+    }
+
+    .footer {
+        background: linear-gradient(135deg, #2d3436 0%, #000000 100%);
+        color: white;
+        padding: 25px 15px;
+        text-align: center;
+        margin-top: 40px;
+        border-top: 4px solid #ffd700;
+    }
+
+    .footer-avatar {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        border: 3px solid #ffd700;
+        margin-bottom: 15px;
+    }
+
+    .footer h3 {
+        color: #ffd700;
+        font-size: 1.3rem;
+        margin-bottom: 8px;
+    }
+
+    .footer p {
+        color: #bbb;
+        font-size: 0.85rem;
+        margin: 4px 0;
+    }
+</style>
+```
+
 </head>
 <body>
 
-    <div class="header">
-        <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
-        <h1>حاسبة الحرب Pro</h1>
-        <p style="opacity: 0.8; font-size: 0.85rem;">الإصدار المحمول v2.0</p>
-    </div>
+```
+<div class="header">
+    <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+    <h1>⚔️ حاسبة الحرب الأخيرة Pro Max</h1>
+    <p style="opacity: 0.9; font-size: 0.85rem;">محاكي قتال متقدم v3.0 | Built by Distopǐa</p>
+</div>
 
-    <div class="tabs-wrapper">
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab('calculator')">🎯 الحاسبة</button>
-            <button class="tab" onclick="switchTab('compare')">⚔️ مقارنة</button>
-            <button class="tab" onclick="switchTab('saved')">💾 المحفوظات</button>
-            <button class="tab" onclick="switchTab('charts')">📊 الرسوم</button>
-        </div>
+<div class="tabs-wrapper">
+    <div class="tabs">
+        <button class="tab active" onclick="switchTab('calculator')">🎯 الحاسبة</button>
+        <button class="tab" onclick="switchTab('compare')">⚔️ مقارنة</button>
+        <button class="tab" onclick="switchTab('saved')">💾 المحفوظات</button>
+        <button class="tab" onclick="switchTab('charts')">📊 الرسوم</button>
     </div>
+</div>
 
-    <div class="container">
+<div class="container">
+    
+    <!-- تبويب الحاسبة -->
+    <div id="calculator" class="tab-content active">
         
-        <div id="calculator" class="tab-content active">
+        <div class="card">
+            <h2>🗡️ المهاجم</h2>
             
-            <div class="card">
-                <h2>🗡️ خصائص المهاجم</h2>
-                
-                <div class="input-group">
-                    <label>نوع الوحدة</label>
-                    <select id="attackerType">
-                        <option value="tank">🟫 دبابة رئيسية</option>
-                        <option value="plane">✈️ طائرة مقاتلة</option>
-                        <option value="missile">🚀 منصة صواريخ</option>
-                    </select>
-                </div>
-
-                <div class="input-group">
-                    <label>قوة الهجوم</label>
-                    <input type="text" id="attack" value="65.2K" inputmode="decimal" placeholder="مثال: 100K أو 1M">
-                    <div class="preview-box">القيمة: <span id="attackValue">65,200</span></div>
-                </div>
-
-                <div class="input-group">
-                    <label>مستوى النجوم (الترقية)</label>
-                    <div class="grid-select">
-                        <div class="select-item selected" onclick="selectStars(0, this)"><span>⭐</span><small>+30%</small></div>
-                        <div class="select-item" onclick="selectStars(1, this)"><span>2⭐</span><small>+70%</small></div>
-                        <div class="select-item" onclick="selectStars(2, this)"><span>3⭐</span><small>+120%</small></div>
-                        <div class="select-item" onclick="selectStars(3, this)"><span>4⭐</span><small>+185%</small></div>
-                        <div class="select-item" onclick="selectStars(4, this)"><span>5⭐</span><small>+270%</small></div>
-                    </div>
-                </div>
-
-                <div class="input-group">
-                    <label>نوع المهارة المستخدمة</label>
-                    <div class="grid-select" style="grid-template-columns: repeat(3, 1fr);">
-                        <div class="select-item selected" onclick="selectSkill(0, this)"><span>⚔️</span><small>عادية</small></div>
-                        <div class="select-item" onclick="selectSkill(1, this)"><span>🔥</span><small>خاصة</small></div>
-                        <div class="select-item" onclick="selectSkill(2, this)"><span>💥</span><small>نهائية</small></div>
-                    </div>
-                </div>
-
-                <div class="stats-grid">
-                    <div class="input-group" style="margin:0;">
-                        <label>نسبة الحرجة %</label>
-                        <input type="number" id="critChance" value="20" inputmode="numeric">
-                    </div>
-                    <div class="input-group" style="margin:0;">
-                        <label>ضرر الحرجة %</label>
-                        <input type="number" id="critDamage" value="150" inputmode="numeric">
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <h2>🛡️ خصائص المدافع</h2>
-                <div class="input-group">
-                    <label>نقاط الصحة (HP)</label>
-                    <input type="text" id="health" value="1.4M" inputmode="decimal">
-                    <div class="preview-box">القيمة: <span id="healthValue">1,400,000</span></div>
-                </div>
-
-                <div class="stats-grid">
-                    <div class="input-group" style="margin:0;">
-                        <label>الدفاع</label>
-                        <input type="text" id="defense" value="8.4K" inputmode="decimal">
-                    </div>
-                    <div class="input-group" style="margin:0;">
-                        <label>المقاومة %</label>
-                        <input type="number" id="resistance" value="10" inputmode="numeric">
-                    </div>
-                </div>
-            </div>
-
-            <div class="action-buttons">
-                <button class="btn-lg btn-primary" onclick="simulateBattle()">
-                    <span>🎯</span> بدء المحاكاة
-                </button>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <button class="btn-lg btn-secondary" onclick="saveCalculation()">💾 حفظ</button>
-                    <button class="btn-lg btn-success" onclick="shareAsImage()">📸 صورة</button>
-                </div>
-            </div>
-
-            <div id="results" style="display: none; margin-top: 25px;"></div>
-        </div>
-
-        <div id="compare" class="tab-content">
-            <div class="card">
-                <h2>الوحدة الأولى</h2>
-                <input type="text" id="comp1Attack" placeholder="الهجوم" value="65.2K" class="input-group">
-                <select id="comp1Stars" style="width:100%">
-                    <option value="0">⭐ 1 نجمة</option>
-                    <option value="1">⭐⭐ 2 نجمة</option>
-                    <option value="2">⭐⭐⭐ 3 نجوم</option>
-                    <option value="3">⭐⭐⭐⭐ 4 نجوم</option>
-                    <option value="4">⭐⭐⭐⭐⭐ 5 نجوم</option>
+            <div class="input-group">
+                <label>نوع الوحدة</label>
+                <select id="attackerType" onchange="updatePreview()">
+                    <option value="tank">🟫 دبابة (Tank)</option>
+                    <option value="plane">✈️ طائرة (Aircraft)</option>
+                    <option value="missile">🚀 صاروخ (Missile)</option>
                 </select>
             </div>
 
-            <div class="vs-badge">VS</div>
+            <div class="input-group">
+                <label>قوة الهجوم</label>
+                <input type="text" id="attack" value="65.2K" inputmode="decimal" oninput="updatePreview()">
+                <div class="preview-box">
+                    <span>القيمة:</span>
+                    <strong id="attackValue">65,200</strong>
+                </div>
+            </div>
 
-            <div class="card">
-                <h2>الوحدة الثانية</h2>
-                <input type="text" id="comp2Attack" placeholder="الهجوم" value="70K" class="input-group">
-                <select id="comp2Stars" style="width:100%">
-                    <option value="0">⭐ 1 نجمة</option>
-                    <option value="1">⭐⭐ 2 نجمة</option>
-                    <option value="2">⭐⭐⭐ 3 نجوم</option>
-                    <option value="3">⭐⭐⭐⭐ 4 نجوم</option>
-                    <option value="4">⭐⭐⭐⭐⭐ 5 نجوم</option>
+            <div class="input-group">
+                <label>
+                    <span class="info-tooltip">ℹ</span>
+                    مستوى النجوم
+                </label>
+                <div class="grid-select">
+                    <div class="select-item selected" onclick="selectStars(0, this)">
+                        <span>⭐</span><small>+30%</small>
+                    </div>
+                    <div class="select-item" onclick="selectStars(1, this)">
+                        <span>⭐⭐</span><small>+70%</small>
+                    </div>
+                    <div class="select-item" onclick="selectStars(2, this)">
+                        <span>⭐⭐⭐</span><small>+120%</small>
+                    </div>
+                    <div class="select-item" onclick="selectStars(3, this)">
+                        <span>⭐⭐⭐⭐</span><small>+185%</small>
+                    </div>
+                    <div class="select-item" onclick="selectStars(4, this)">
+                        <span>⭐⭐⭐⭐⭐</span><small>+270%</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>
+                    <span class="info-tooltip">ℹ</span>
+                    نوع المهارة
+                </label>
+                <div class="grid-select" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="select-item selected" onclick="selectSkill(0, this)">
+                        <span>⚔️</span><small>عادية<br>100%</small>
+                    </div>
+                    <div class="select-item" onclick="selectSkill(1, this)">
+                        <span>🔥</span><small>خاصة<br>345%</small>
+                    </div>
+                    <div class="select-item" onclick="selectSkill(2, this)">
+                        <span>💥</span><small>نهائية<br>405%</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="input-group" style="margin:0;">
+                    <label>نسبة الحرج %</label>
+                    <input type="number" id="critChance" value="20" inputmode="numeric" oninput="updatePreview()">
+                    <div class="preview-box" style="margin-top: 8px;">
+                        <span>1 من كل</span>
+                        <strong id="critFreq">5</strong>
+                    </div>
+                </div>
+                <div class="input-group" style="margin:0;">
+                    <label>ضرر الحرج %</label>
+                    <input type="number" id="critDamage" value="150" inputmode="numeric" oninput="updatePreview()">
+                    <div class="preview-box" style="margin-top: 8px;">
+                        <span>مضاعف</span>
+                        <strong id="critMulti">×1.5</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🛡️ المدافع</h2>
+            
+            <div class="input-group">
+                <label>نوع الوحدة</label>
+                <select id="defenderType" onchange="updatePreview()">
+                    <option value="tank">🟫 دبابة (Tank)</option>
+                    <option value="plane">✈️ طائرة (Aircraft)</option>
+                    <option value="missile">🚀 صاروخ (Missile)</option>
                 </select>
             </div>
-
-            <button class="btn-lg btn-primary" onclick="compareUnits()">🔍 قارن الآن</button>
-            <div id="compareResults" style="margin-top: 20px;"></div>
-        </div>
-
-        <div id="saved" class="tab-content">
-            <div class="card">
-                <h2 style="margin-bottom: 20px;">السجلات المحفوظة</h2>
-                <div id="savedList" style="display: flex; flex-direction: column; gap: 10px;"></div>
-            </div>
-        </div>
-
-        <div id="charts" class="tab-content">
-            <div class="card">
-                <h2>مقارنة المهارات</h2>
-                <div style="height: 250px; position: relative;">
-                    <canvas id="skillChart"></canvas>
+            
+            <div class="input-group">
+                <label>نقاط الصحة (HP)</label>
+                <input type="text" id="health" value="1.4M" inputmode="decimal" oninput="updatePreview()">
+                <div class="preview-box">
+                    <span>القيمة:</span>
+                    <strong id="healthValue">1,400,000</strong>
                 </div>
             </div>
-            <div class="card">
-                <h2>منحنى الترقيات</h2>
-                <div style="height: 250px; position: relative;">
-                    <canvas id="upgradeChart"></canvas>
+
+            <div class="stats-grid">
+                <div class="input-group" style="margin:0;">
+                    <label>الدفاع</label>
+                    <input type="text" id="defense" value="8.4K" inputmode="decimal" oninput="updatePreview()">
                 </div>
+                <div class="input-group" style="margin:0;">
+                    <label>المقاومة %</label>
+                    <input type="number" id="resistance" value="10" inputmode="numeric">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>اسم الحساب (اختياري)</label>
+                <input type="text" id="calcName" placeholder="مثال: دبابتي الرئيسية">
             </div>
         </div>
 
+        <div id="typeAdvantagePreview" style="text-align: center; margin: 15px 0;"></div>
+
+        <div class="action-buttons">
+            <button class="btn-lg btn-primary" onclick="simulateBattle()">
+                <span>🎯</span> بدء المحاكاة
+            </button>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button class="btn-lg btn-secondary" onclick="saveCalculation()">💾 حفظ</button>
+                <button class="btn-lg btn-success" onclick="shareAsImage()">📸 صورة</button>
+            </div>
+        </div>
+
+        <div id="results" style="display: none; margin-top: 25px;"></div>
     </div>
+
+    <!-- تبويب المقارنة -->
+    <div id="compare" class="tab-content">
+        <div class="card">
+            <h2>الوحدة الأولى</h2>
+            <div class="input-group">
+                <label>نوع الوحدة</label>
+                <select id="comp1Type">
+                    <option value="tank">🟫 دبابة</option>
+                    <option value="plane">✈️ طائرة</option>
+                    <option value="missile">🚀 صاروخ</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>الهجوم</label>
+                <input type="text" id="comp1Attack" value="65.2K">
+            </div>
+            <div class="input-group">
+                <label>النجوم</label>
+                <select id="comp1Stars">
+                    <option value="0">⭐ +30%</option>
+                    <option value="1">⭐⭐ +70%</option>
+                    <option value="2">⭐⭐⭐ +120%</option>
+                    <option value="3">⭐⭐⭐⭐ +185%</option>
+                    <option value="4">⭐⭐⭐⭐⭐ +270%</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="vs-badge">VS</div>
+
+        <div class="card">
+            <h2>الوحدة الثانية</h2>
+            <div class="input-group">
+                <label>نوع الوحدة</label>
+                <select id="comp2Type">
+                    <option value="tank">🟫 دبابة</option>
+                    <option value="plane">✈️ طائرة</option>
+                    <option value="missile">🚀 صاروخ</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>الهجوم</label>
+                <input type="text" id="comp2Attack" value="70K">
+            </div>
+            <div class="input-group">
+                <label>النجوم</label>
+                <select id="comp2Stars">
+                    <option value="0">⭐ +30%</option>
+                    <option value="1">⭐⭐ +70%</option>
+                    <option value="2">⭐⭐⭐ +120%</option>
+                    <option value="3">⭐⭐⭐⭐ +185%</option>
+                    <option value="4">⭐⭐⭐⭐⭐ +270%</option>
+                </select>
+            </div>
+        </div>
+
+        <button class="btn-lg btn-primary" onclick="compareUnits()">🔍 قارن الآن</button>
+        <div id="compareResults"></div>
+    </div>
+
+    <!-- تبويب المحفوظات -->
+    <div id="saved" class="tab-content">
+        <div class="card">
+            <h2>💾 السجلات المحفوظة</h2>
+            <div id="savedList"></div>
+        </div>
+    </div>
+
+    <!-- تبويب الرسوم -->
+    <div id="charts" class="tab-content">
+        <div class="card">
+            <h2>📊 مقارنة المهارات</h2>
+            <div class="chart-wrapper">
+                <canvas id="skillChart"></canvas>
+            </div>
+        </div>
+        <div class="card">
+            <h2>📈 منحنى الترقيات</h2>
+            <div class="chart-wrapper">
+                <canvas id="upgradeChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="footer">
+    <img src="https://i.pinimg.com/736x/d0/f6/36/d0f636b1d0308c95b4ffcc75c3df88bc.jpg" alt="Jiraiya" class="footer-avatar">
+    <h3>Distopǐa - 1930</h3>
+    <p>🎮 Master Tactician</p>
+    <p>⚔️ Last War: Survival Game</p>
+    <p style="margin-top: 10px; opacity: 0.7;">
+        "القوة الحقيقية تأتي من التخطيط والاستراتيجية"
+    </p>
+</div>
+```
 
 <script>
-    // --- إعدادات ومتغيرات ---
+    // === المتغيرات الأساسية ===
     let selectedStarLevel = 0;
     let selectedSkillType = 0;
     const starBonuses = [0.30, 0.70, 1.20, 1.85, 2.70];
-    const skillMultipliers = [1.0, 3.45, 6.05];
+    const skillMultipliers = [1.0, 3.45, 4.05]; // تم تصحيح النهائية من 6.05 إلى 4.05
+    const skillNames = ['عادية', 'خاصة', 'نهائية'];
     let currentTheme = 'light';
     let skillChart, upgradeChart;
 
-    // --- دوال المساعدة ---
+    // === نظام Type Advantage (صحيح من اللعبة) ===
+    function getTypeAdvantage(attacker, defender) {
+        const advantages = {
+            'tank': 'missile',
+            'plane': 'tank', 
+            'missile': 'plane'
+        };
+        
+        if (advantages[attacker] === defender) {
+            return { modifier: 1.2, text: 'تفوق نوع الوحدة! +20% ضرر', type: 'advantage' };
+        } else if (advantages[defender] === attacker) {
+            return { modifier: 0.8, text: 'ضعف نوع الوحدة! -20% ضرر', type: 'disadvantage' };
+        }
+        return { modifier: 1.0, text: 'لا ميزة أو ضعف', type: 'neutral' };
+    }
+
+    // === دوال التحويل ===
     function parseValue(str) {
         if (!str) return 0;
         str = String(str).toUpperCase().trim();
@@ -478,19 +737,56 @@
         return parseFloat(str.replace(/,/g, '')) || 0;
     }
 
-    function formatNumber(num) { return num.toLocaleString('en-US'); }
+    function formatNumber(num) { 
+        return Math.round(num).toLocaleString('en-US'); 
+    }
+    
     function formatCompact(num) {
+        num = Math.round(num);
         if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
         if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
         return num.toString();
     }
 
-    // --- التفاعل مع الواجهة ---
+    function getUnitIcon(type) {
+        return { tank: '🟫', plane: '✈️', missile: '🚀' }[type] || '⚔️';
+    }
+
+    // === التحديث الفوري ===
+    function updatePreview() {
+        const attack = parseValue(document.getElementById('attack').value);
+        const health = parseValue(document.getElementById('health').value);
+        const critChance = parseFloat(document.getElementById('critChance').value) || 0;
+        const critDamage = parseFloat(document.getElementById('critDamage').value) || 100;
+        
+        document.getElementById('attackValue').textContent = formatNumber(attack);
+        document.getElementById('healthValue').textContent = formatNumber(health);
+        
+        // تحديث معاينة الضربة الحرجة
+        const critFreq = critChance > 0 ? Math.round(100 / critChance) : '∞';
+        document.getElementById('critFreq').textContent = critFreq;
+        
+        const critMulti = (critDamage / 100).toFixed(1);
+        document.getElementById('critMulti').textContent = '×' + critMulti;
+        
+        // معاينة Type Advantage
+        const attType = document.getElementById('attackerType').value;
+        const defType = document.getElementById('defenderType').value;
+        const typeInfo = getTypeAdvantage(attType, defType);
+        
+        const preview = document.getElementById('typeAdvantagePreview');
+        preview.innerHTML = `
+            <div class="type-badge ${typeInfo.type}">
+                ${getUnitIcon(attType)} vs ${getUnitIcon(defType)} | ${typeInfo.text}
+            </div>
+        `;
+    }
+
+    // === الاختيارات ===
     function selectStars(level, el) {
         selectedStarLevel = level;
         el.parentElement.querySelectorAll('.select-item').forEach(e => e.classList.remove('selected'));
         el.classList.add('selected');
-        updatePreview();
     }
 
     function selectSkill(type, el) {
@@ -499,43 +795,32 @@
         el.classList.add('selected');
     }
 
+    // === التبويبات ===
     function switchTab(tabId) {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         
         event.target.classList.add('active');
         document.getElementById(tabId).classList.add('active');
-        
-        // تمرير التبويب النشط إلى المنتصف في الجوال
         event.target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
 
         if (tabId === 'saved') loadSaved();
         if (tabId === 'charts') updateCharts();
     }
 
+    // === Dark Mode ===
     function toggleTheme() {
         currentTheme = currentTheme === 'light' ? 'dark' : 'light';
         document.documentElement.setAttribute('data-theme', currentTheme);
         document.querySelector('.theme-toggle').textContent = currentTheme === 'light' ? '🌙' : '☀️';
+        localStorage.setItem('theme', currentTheme);
         if(skillChart || upgradeChart) setTimeout(updateCharts, 100);
     }
 
-    // --- تحديث القيم الفوري ---
-    function updatePreview() {
-        const attack = parseValue(document.getElementById('attack').value);
-        const health = parseValue(document.getElementById('health').value);
-        
-        document.getElementById('attackValue').textContent = formatNumber(attack);
-        document.getElementById('healthValue').textContent = formatNumber(health);
-    }
-
-    // ربط المدخلات بالتحديث
-    ['attack', 'health', 'defense'].forEach(id => {
-        document.getElementById(id).addEventListener('input', updatePreview);
-    });
-
-    // --- منطق المحاكاة ---
+    // === المحاكاة الصحيحة ===
     function simulateBattle() {
+        const attType = document.getElementById('attackerType').value;
+        const defType = document.getElementById('defenderType').value;
         const attack = parseValue(document.getElementById('attack').value);
         const defense = parseValue(document.getElementById('defense').value);
         let health = parseValue(document.getElementById('health').value);
@@ -543,28 +828,70 @@
         const critDamage = parseFloat(document.getElementById('critDamage').value) / 100;
         const resistance = parseFloat(document.getElementById('resistance').value) / 100;
 
-        const baseDmg = (attack - defense) * (1 + starBonuses[selectedStarLevel]) * skillMultipliers[selectedSkillType] * (1 - resistance);
+        if (attack <= 0 || health <= 0) {
+            alert('⚠️ يرجى إدخال قيم صحيحة!');
+            return;
+        }
+
+        // المعادلة الصحيحة
+        const typeInfo = getTypeAdvantage(attType, defType);
+        const upgradeBonus = starBonuses[selectedStarLevel];
+        const skillMultiplier = skillMultipliers[selectedSkillType];
+        
+        // الضرر الأساسي بالمعادلة الصحيحة
+        const baseDamage = (attack - defense) * (1 + upgradeBonus) * skillMultiplier * typeInfo.modifier * (1 - resistance);
         
         let turns = 0, totalDmg = 0, crits = 0;
         let logs = [];
 
-        // محاكاة سريعة
-        while (health > 0 && turns < 2000) {
+        while (health > 0 && turns < 10000) {
             turns++;
             const isCrit = Math.random() < critChance;
-            let dmg = Math.max(1, isCrit ? baseDmg * critDamage : baseDmg);
+            let dmg = Math.max(1, Math.round(isCrit ? baseDamage * critDamage : baseDamage));
+            
             health -= dmg;
             totalDmg += dmg;
             if (isCrit) crits++;
             
-            if (turns <= 5 || health <= 0) { // نسجل فقط البداية والنهاية للتخفيف
-                logs.push({ t: turns, d: dmg, c: isCrit, h: Math.max(0, health) });
-            }
+            // حفظ كل الضربات (آخر 100 فقط للعرض)
+            logs.push({ 
+                turn: turns, 
+                damage: dmg, 
+                isCrit: isCrit, 
+                health: Math.max(0, health) 
+            });
         }
+
+        displayResults(turns, crits, totalDmg, logs, typeInfo);
+    }
+
+    // === عرض النتائج ===
+    function displayResults(turns, crits, totalDmg, logs, typeInfo) {
+        const avg = totalDmg / turns;
+        const displayLogs = logs.length > 100 ? logs.slice(-100) : logs;
+        
+        const logHTML = displayLogs.map(log => `
+            <div class="log-entry ${log.isCrit ? 'critical' : ''}">
+                <span>
+                    <strong>${log.isCrit ? '💥' : '⚔️'} الدور ${log.turn}:</strong>
+                    ${formatCompact(log.damage)} ضرر
+                </span>
+                <span style="color: ${log.health === 0 ? 'var(--danger)' : 'var(--success)'};">
+                    HP: ${formatCompact(log.health)}
+                </span>
+            </div>
+        `).join('');
 
         const resultsHTML = `
             <div class="card" style="border-top: 4px solid var(--success);">
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <div class="type-badge ${typeInfo.type}">
+                        ${typeInfo.text}
+                    </div>
+                </div>
+                
                 <h3 style="text-align: center; margin-bottom: 15px;">📊 تقرير المعركة</h3>
+                
                 <div class="stats-grid">
                     <div class="stat-box">
                         <div class="stat-val">${turns}</div>
@@ -579,9 +906,16 @@
                         <div class="stat-lbl">ضربات حرجة</div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-val">${formatCompact(totalDmg/turns)}</div>
+                        <div class="stat-val">${formatCompact(avg)}</div>
                         <div class="stat-lbl">متوسط الضرر</div>
                     </div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <h4 style="margin-bottom: 10px; color: var(--text-sub);">
+                        📜 سجل المعركة ${logs.length > 100 ? `(آخر 100 من ${logs.length})` : ''}
+                    </h4>
+                    <div class="battle-log">${logHTML}</div>
                 </div>
             </div>
         `;
@@ -592,56 +926,89 @@
         resDiv.scrollIntoView({ behavior: 'smooth' });
     }
 
-    // --- المقارنة ---
+    // === المقارنة ===
     function compareUnits() {
-        const getPower = (idAtk, idStar) => {
-            const atk = parseValue(document.getElementById(idAtk).value);
-            const stars = parseInt(document.getElementById(idStar).value);
-            return atk * (1 + starBonuses[stars]);
-        };
+        const type1 = document.getElementById('comp1Type').value;
+        const type2 = document.getElementById('comp2Type').value;
+        const atk1 = parseValue(document.getElementById('comp1Attack').value);
+        const atk2 = parseValue(document.getElementById('comp2Attack').value);
+        const stars1 = parseInt(document.getElementById('comp1Stars').value);
+        const stars2 = parseInt(document.getElementById('comp2Stars').value);
 
-        const p1 = getPower('comp1Attack', 'comp1Stars');
-        const p2 = getPower('comp2Attack', 'comp2Stars');
-        const diff = Math.abs(p1 - p2);
-        const winner = p1 > p2 ? 'الأولى' : 'الثانية';
+        const typeInfo = getTypeAdvantage(type1, type2);
+        
+        const power1 = atk1 * (1 + starBonuses[stars1]) * typeInfo.modifier;
+        const power2 = atk2 * (1 + starBonuses[stars2]);
+        
+        const winner = power1 > power2 ? 'الأولى' : 'الثانية';
+        const diff = Math.abs(power1 - power2);
 
         document.getElementById('compareResults').innerHTML = `
-            <div class="card" style="text-align: center; background: rgba(102, 126, 234, 0.1);">
-                <h3>🏆 الوحدة ${winner} أقوى</h3>
-                <p>الفرق: <strong>${formatCompact(diff)}</strong> نقطة ضرر</p>
-                <div style="font-size: 0.8rem; margin-top: 10px; color: var(--text-sub);">
-                    (الأولى: ${formatCompact(p1)}) vs (الثانية: ${formatCompact(p2)})
+            <div class="card" style="margin-top: 20px; text-align: center;">
+                <div class="type-badge ${typeInfo.type}">
+                    ${getUnitIcon(type1)} vs ${getUnitIcon(type2)} | ${typeInfo.text}
                 </div>
+                
+                <h3 style="margin: 15px 0;">🏆 الوحدة ${winner} أقوى</h3>
+                
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-lbl">الوحدة الأولى</div>
+                        <div class="stat-val">${formatCompact(power1)}</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-lbl">الوحدة الثانية</div>
+                        <div class="stat-val">${formatCompact(power2)}</div>
+                    </div>
+                </div>
+                
+                <p style="margin-top: 15px; color: var(--text-sub);">
+                    الفارق: <strong style="color: var(--primary);">${formatCompact(diff)}</strong> نقطة
+                </p>
             </div>
         `;
     }
 
-    // --- الرسوم البيانية ---
+    // === الرسوم البيانية ===
     function updateCharts() {
-        const base = 100; // قيمة افتراضية للرسم
+        const attack = parseValue(document.getElementById('attack').value) || 100;
+        const defense = parseValue(document.getElementById('defense').value) || 0;
         const textColor = currentTheme === 'dark' ? '#cbd5e0' : '#4a5568';
 
         // رسم المهارات
         const ctx1 = document.getElementById('skillChart');
         if (skillChart) skillChart.destroy();
+        
+        const skillData = skillMultipliers.map(m => {
+            const base = attack - defense;
+            return Math.round(base * (1 + starBonuses[selectedStarLevel]) * m * 0.9);
+        });
+
         skillChart = new Chart(ctx1, {
             type: 'bar',
             data: {
-                labels: ['عادية', 'خاصة', 'نهائية'],
+                labels: ['⚔️ عادية', '🔥 خاصة', '💥 نهائية'],
                 datasets: [{
-                    label: 'قوة المهارة',
-                    data: skillMultipliers.map(m => m * 100),
+                    label: 'الضرر المتوقع',
+                    data: skillData,
                     backgroundColor: ['#667eea', '#ed64a6', '#ecc94b'],
-                    borderRadius: 8
+                    borderRadius: 10
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => formatCompact(context.parsed.y) + ' ضرر'
+                        }
+                    }
+                },
                 scales: {
-                    x: { ticks: { color: textColor } },
-                    y: { ticks: { color: textColor } }
+                    x: { ticks: { color: textColor, font: { size: 12 } } },
+                    y: { ticks: { color: textColor, callback: (val) => formatCompact(val) } }
                 }
             }
         });
@@ -649,64 +1016,152 @@
         // رسم الترقيات
         const ctx2 = document.getElementById('upgradeChart');
         if (upgradeChart) upgradeChart.destroy();
+        
+        const upgradeData = starBonuses.map(b => {
+            const base = attack - defense;
+            return Math.round(base * (1 + b) * skillMultipliers[1] * 0.9);
+        });
+
         upgradeChart = new Chart(ctx2, {
             type: 'line',
             data: {
-                labels: ['⭐', '2⭐', '3⭐', '4⭐', '5⭐'],
+                labels: ['⭐', '⭐⭐', '⭐⭐⭐', '⭐⭐⭐⭐', '⭐⭐⭐⭐⭐'],
                 datasets: [{
-                    label: 'نسبة القوة',
-                    data: starBonuses.map(b => (1 + b) * 100),
+                    label: 'قوة الهجوم',
+                    data: upgradeData,
                     borderColor: '#667eea',
                     backgroundColor: 'rgba(102, 126, 234, 0.1)',
                     fill: true,
-                    tension: 0.4
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => formatCompact(context.parsed.y) + ' ضرر'
+                        }
+                    }
+                },
                 scales: {
-                    x: { ticks: { color: textColor } },
-                    y: { ticks: { color: textColor } }
+                    x: { ticks: { color: textColor, font: { size: 12 } } },
+                    y: { ticks: { color: textColor, callback: (val) => formatCompact(val) } }
                 }
             }
         });
     }
 
-    // --- الحفظ والاسترجاع ---
+    // === الحفظ ===
     function saveCalculation() {
-        const saved = JSON.parse(localStorage.getItem('warCalc_v2') || '[]');
-        saved.unshift({
-            date: new Date().toLocaleDateString('ar'),
-            atk: document.getElementById('attack').value,
-            hp: document.getElementById('health').value
-        });
-        localStorage.setItem('warCalc_v2', JSON.stringify(saved.slice(0, 10)));
-        alert('✅ تم الحفظ');
+        const name = document.getElementById('calcName').value || `حساب ${new Date().toLocaleDateString('ar')}`;
+        const data = {
+            name,
+            attType: document.getElementById('attackerType').value,
+            defType: document.getElementById('defenderType').value,
+            attack: document.getElementById('attack').value,
+            defense: document.getElementById('defense').value,
+            health: document.getElementById('health').value,
+            stars: selectedStarLevel,
+            skill: selectedSkillType,
+            date: new Date().toLocaleDateString('ar')
+        };
+
+        let saved = JSON.parse(localStorage.getItem('warCalc_v3') || '[]');
+        saved.unshift(data);
+        saved = saved.slice(0, 20);
+        localStorage.setItem('warCalc_v3', JSON.stringify(saved));
+        alert('✅ تم الحفظ بنجاح!');
     }
 
     function loadSaved() {
-        const saved = JSON.parse(localStorage.getItem('warCalc_v2') || '[]');
+        const saved = JSON.parse(localStorage.getItem('warCalc_v3') || '[]');
         const list = document.getElementById('savedList');
-        if(saved.length === 0) list.innerHTML = '<p style="text-align:center; padding: 20px;">لا توجد سجلات</p>';
-        else {
-            list.innerHTML = saved.map(item => `
-                <div style="padding: 10px; border: 1px solid var(--border); border-radius: 8px; display: flex; justify-content: space-between;">
-                    <span>📅 ${item.date}</span>
-                    <span>⚔️ ${item.atk}</span>
-                </div>
-            `).join('');
+        
+        if (saved.length === 0) {
+            list.innerHTML = '<p style="text-align:center; padding: 30px; color: var(--text-sub);">لا توجد سجلات محفوظة</p>';
+            return;
         }
+
+        list.innerHTML = saved.map((item, idx) => `
+            <div class="saved-item" onclick="loadCalc(${idx})">
+                <div>
+                    <div style="font-weight: bold; margin-bottom: 5px;">${item.name}</div>
+                    <div style="font-size: 0.8rem; color: var(--text-sub);">
+                        ${getUnitIcon(item.attType)} vs ${getUnitIcon(item.defType)} | 
+                        ${item.attack} هجوم | ${item.date}
+                    </div>
+                </div>
+                <button class="delete-btn" onclick="event.stopPropagation(); deleteCalc(${idx})">🗑️</button>
+            </div>
+        `).join('');
     }
 
-    function shareAsImage() {
-        alert('سيتم التقاط صورة للنتائج...');
-        // يمكن تفعيل html2canvas هنا
+    function loadCalc(idx) {
+        const saved = JSON.parse(localStorage.getItem('warCalc_v3') || '[]')[idx];
+        if (!saved) return;
+        
+        document.getElementById('attackerType').value = saved.attType;
+        document.getElementById('defenderType').value = saved.defType;
+        document.getElementById('attack').value = saved.attack;
+        document.getElementById('defense').value = saved.defense;
+        document.getElementById('health').value = saved.health;
+        
+        selectStars(saved.stars, document.querySelectorAll('.select-item')[saved.stars]);
+        selectSkill(saved.skill, document.querySelectorAll('.select-item')[5 + saved.skill]);
+        
+        switchTab('calculator');
+        updatePreview();
     }
-    
-    // تشغيل أولي
-    updatePreview();
+
+    function deleteCalc(idx) {
+        if (!confirm('هل تريد حذف هذا السجل؟')) return;
+        let saved = JSON.parse(localStorage.getItem('warCalc_v3') || '[]');
+        saved.splice(idx, 1);
+        localStorage.setItem('warCalc_v3', JSON.stringify(saved));
+        loadSaved();
+    }
+
+    // === مشاركة كصورة ===
+    function shareAsImage() {
+        const results = document.getElementById('results');
+        if (!results || results.style.display === 'none') {
+            alert('⚠️ يجب تشغيل المحاكاة أولاً!');
+            return;
+        }
+
+        html2canvas(results, {
+            backgroundColor: currentTheme === 'dark' ? '#2d3748' : '#ffffff',
+            scale: 2
+        }).then(canvas => {
+            canvas.toBlob(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `war-calc-${Date.now()}.png`;
+                a.click();
+                URL.revokeObjectURL(url);
+                alert('✅ تم حفظ الصورة!');
+            });
+        });
+    }
+
+    // === التهيئة ===
+    document.addEventListener('DOMContentLoaded', () => {
+        // تحميل الثيم المحفوظ
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            currentTheme = savedTheme;
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            document.querySelector('.theme-toggle').textContent = savedTheme === 'light' ? '🌙' : '☀️';
+        }
+        
+        updatePreview();
+    });
 </script>
 
 </body>
