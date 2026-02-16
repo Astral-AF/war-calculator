@@ -685,7 +685,7 @@
     <div class="header">
         <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
         <h1>⚔️ حاسبة الحرب الأخيرة Pro Max</h1>
-        <p>محاكي قتال متقدم + أدوات شاملة v5.1 | Built by Distopǐa</p>
+        <p>محاكي قتال متقدم + أدوات شاملة v5.2 | Built by Distopǐa</p>
     </div>
 
     <div class="tabs-wrapper">
@@ -1149,7 +1149,7 @@
 
         <script>
             /* ═══════════════════════════════════════════════
-                حاسبة الحرب الأخيرة Pro Max - v5.1
+                حاسبة الحرب الأخيرة Pro Max - v5.2
                Built by Distopǐa
                Data verified from: Reddit, Fandom, BlueStacks,
                allclash.com, lastwargame.online, medievalfun.com,
@@ -1282,6 +1282,100 @@
             const ROLE_NAMES = { attack: '⚔️ مهاجم', defense: '🛡️ مدافع', support: '💊 دعم' };
             const RARITY_COLORS = { UR: '#f6ad55', SSR: '#b794f4', SR: '#63b3ed' };
             const DMG_ICONS = { physical: '💥', energy: '⚡' };
+            const SKILL_TYPES = { auto: { icon: '🎯', name: 'هجمة تلقائية', color: '#e53e3e' }, tactics: { icon: '💡', name: 'تكتيكية', color: '#3182ce' }, passive: { icon: '🔮', name: 'سلبية', color: '#38a169' }, expertise: { icon: '👑', name: 'خبرة', color: '#d69e2e' } };
+
+            const HERO_SKILLS = {
+                'Fiona': {
+                    auto: { name: 'Double Trajectory', nameAr: 'مسار مزدوج', desc: 'إطلاق صاروخ مضاد للطائرات يسبب ضرر فيزيائي' },
+                    tactics: { name: 'Atomic Blast', nameAr: 'انفجار ذري', desc: 'إطلاق صاروخ يضرب جميع الأعداء — ضرر فيزيائي مدمر' },
+                    passive: { name: 'Ballistic Boost', nameAr: 'تعزيز باليستي', desc: 'يزيد الضرر الفيزيائي لهذا البطل في المعركة' },
+                    expertise: { name: 'Super Sensing', nameAr: 'حاسة خارقة', desc: 'HP والهجوم والدفاع +20%، سرعة تبريد المهارات +10%' }
+                },
+                'Kimberly': {
+                    auto: { name: 'Energy Assault', nameAr: 'هجوم طاقة', desc: 'إطلاق صاروخ على عدو عشوائي يسبب ضرر طاقة' },
+                    tactics: { name: 'Barrage Strike', nameAr: 'ضربة وابلية', desc: 'إطلاق 8 صواريخ على أعداء عشوائيين — ضرر طاقة مدمر' },
+                    passive: { name: 'Energy Boost', nameAr: 'تعزيز الطاقة', desc: 'يزيد ضرر الطاقة لهذا البطل في المعركة' },
+                    expertise: { name: 'Super Sensing', nameAr: 'حاسة خارقة', desc: 'HP والهجوم والدفاع +20%، سرعة تبريد المهارات +10%' }
+                },
+                'DVA': {
+                    auto: { name: 'Vortex Missile', nameAr: 'صاروخ دوامي', desc: 'إطلاق صاروخ يسبب ضرر طاقة (تبريد: 1.35 ثانية)' },
+                    tactics: { name: 'Steel Barrage', nameAr: 'وابل فولاذي', desc: 'هجوم نهائي على جميع الأعداء — ضرر طاقة لكل ضربة' },
+                    passive: { name: 'Precision Upgrade', nameAr: 'ترقية الدقة', desc: 'يزيد معدل الضربات الحرجة لهذا البطل' },
+                    expertise: { name: 'Super Sensing', nameAr: 'حاسة خارقة', desc: 'HP والهجوم والدفاع +20%، سرعة تبريد المهارات +10%' }
+                },
+                'Tesla': {
+                    auto: { name: 'Lightning Chain', nameAr: 'سلسلة برق', desc: 'إطلاق أقواس طاقة تسبب ضرر طاقة (تبريد: 1.35 ثانية)' },
+                    tactics: { name: 'Electric Grid Lockdown', nameAr: 'إغلاق شبكة كهربائية', desc: 'هجوم كهربائي على 3 وحدات خلفية — ضرر طاقة' },
+                    passive: { name: 'Electric Power Boost', nameAr: 'تعزيز القوة الكهربائية', desc: 'يزيد ضرر الطاقة لهذا البطل في المعركة' },
+                    expertise: { name: 'Super Sensing', nameAr: 'حاسة خارقة', desc: 'HP والهجوم والدفاع +20%، سرعة تبريد المهارات +10%' }
+                },
+                'Williams': {
+                    auto: { name: 'Stun Bomb', nameAr: 'قنبلة صاعقة', desc: 'إطلاق قنبلة صاعقة تسبب ضرر انفجاري' },
+                    tactics: { name: 'Iron Will', nameAr: 'إرادة حديدية', desc: 'تعزيز دفاع أول وحدتين بنسبة كبيرة لمدة 10 ثوانٍ' },
+                    passive: { name: 'All-Around Armor', nameAr: 'درع شامل', desc: 'تقليل جميع الأضرار الواردة لهذا البطل' },
+                    expertise: { name: 'Super Sensing', nameAr: 'حاسة خارقة', desc: 'HP والهجوم والدفاع +20%، سرعة تبريد المهارات +10%' }
+                },
+                'Marshall': {
+                    auto: { name: 'Triad Harmony', nameAr: 'انسجام ثلاثي', desc: 'إطلاق نار من رشاش مثبت — ضرر خارق للأعداء أمامه' },
+                    tactics: { name: 'Command Strategy', nameAr: 'استراتيجية قيادة', desc: 'يزيد هجوم جميع أعضاء الفريق لمدة 6 ثوانٍ + حرجات' },
+                    passive: { name: 'Rapid Start', nameAr: 'بداية سريعة', desc: 'يزيد سرعة تبريد المهارات ويقلل الضرر على أقوى وحدة' },
+                    expertise: { name: 'Super Sensing', nameAr: 'حاسة خارقة', desc: 'HP والهجوم والدفاع +20%، سرعة تبريد المهارات +10%' }
+                },
+                'Stetmann': {
+                    auto: { name: 'Orb Lightning', nameAr: 'كرة برق', desc: 'إطلاق كرة كهربائية تسبب ضرر طاقة للأعداء في طريقها' },
+                    tactics: { name: 'Lightning Rush', nameAr: 'اندفاع برقي', desc: 'إطلاق 3 كرات كهربائية كل منها تضرب عدو عشوائي' },
+                    passive: { name: 'Critical Charge', nameAr: 'شحنة حرجة', desc: 'يزيد معدل الضربات الحرجة لهذا البطل في المعركة' },
+                    expertise: { name: 'Super Sensing', nameAr: 'حاسة خارقة', desc: 'HP والهجوم والدفاع +20%، سرعة تبريد المهارات +10%' }
+                },
+                'Murphy': {
+                    auto: { name: 'Cannon Fire', nameAr: 'نيران المدفع', desc: 'إطلاق قذيفة مدفع على العدو — ضرر فيزيائي' },
+                    tactics: { name: 'Ironclad Barrier', nameAr: 'حاجز حديدي', desc: 'تعزيز تقليل الضرر الفيزيائي للصف الأمامي لمدة 5 ثوانٍ' },
+                    passive: { name: 'Stand Firm', nameAr: 'صمود', desc: 'تقليل جميع الأضرار الواردة للصف الأمامي' },
+                    expertise: { name: 'Super Sensing', nameAr: 'حاسة خارقة', desc: 'HP والهجوم والدفاع +20%، سرعة تبريد المهارات +10%' }
+                },
+                'Carlie': {
+                    auto: { name: 'Dual-string Rocket', nameAr: 'صاروخ مزدوج', desc: 'مهاجمة الأعداء — ضرر فيزيائي' },
+                    tactics: { name: 'Inferno Blaze', nameAr: 'حريق جحيمي', desc: 'مهاجمة جميع الأعداء مع تقليل ضرر الطاقة الوارد بنسبة 15%' },
+                    passive: { name: 'Energy Adaption', nameAr: 'تكيف الطاقة', desc: 'تقليل ضرر الطاقة الوارد لهذا البطل' },
+                    expertise: { name: 'Super Sensing', nameAr: 'حاسة خارقة', desc: 'HP والهجوم والدفاع +20%، سرعة تبريد المهارات +10%' }
+                },
+                'Schuyler': {
+                    auto: { name: 'Power Barrage', nameAr: 'وابل القوة', desc: 'إطلاق صاروخ على العدو — ضرر طاقة' },
+                    tactics: { name: 'Blast Frenzy', nameAr: 'جنون الانفجار', desc: 'استهداف الصف الخلفي — ضرر طاقة + 20% فرصة صعق لمدة 2 ثانية' },
+                    passive: { name: 'Antimatter Armor', nameAr: 'درع مضاد للمادة', desc: 'يزيد هجوم هذا البطل في المعركة' },
+                    expertise: { name: 'Super Sensing', nameAr: 'حاسة خارقة', desc: 'HP والهجوم والدفاع +20%، سرعة تبريد المهارات +10%' }
+                },
+                'Lucius': {
+                    auto: { name: 'Lightning Triple Strike', nameAr: 'ضربة برق ثلاثية', desc: 'يستهدف الصف الأمامي — ضرر فيزيائي لعدو عشوائي' },
+                    tactics: { name: "Knight's Spirit", nameAr: 'روح الفارس', desc: 'تقليل ضرر الطاقة الوارد لجميع الفريق لمدة 5 ثوانٍ' },
+                    passive: { name: 'Silver Armor', nameAr: 'درع فضي', desc: 'تقليل جميع الأضرار + ضرر الطاقة للصف الأمامي' },
+                    expertise: { name: 'Super Sensing', nameAr: 'حاسة خارقة', desc: 'HP والهجوم والدفاع +20%، سرعة تبريد المهارات +10%' }
+                },
+                'Morrison': {
+                    auto: { name: 'Full-Auto Machine Gun', nameAr: 'رشاش آلي', desc: 'مهاجمة بالرشاش — ضرر فيزيائي لعدو واحد' },
+                    tactics: { name: 'Armor-Piercing Shot', nameAr: 'طلقة خارقة للدروع', desc: '10 ضربات على أعداء عشوائيين مع تقليل دفاعهم 5% (حتى 25%)' },
+                    passive: { name: 'Full Firepower', nameAr: 'قوة نارية كاملة', desc: 'يزيد الضرر الفيزيائي لهذا البطل في المعركة' },
+                    expertise: { name: 'Super Sensing', nameAr: 'حاسة خارقة', desc: 'HP والهجوم والدفاع +20%، سرعة تبريد المهارات +10%' }
+                },
+                'McGregor': {
+                    auto: { name: 'Forward Rush', nameAr: 'اندفاع أمامي', desc: 'مهاجمة بالرشاش — ضرر فيزيائي' },
+                    tactics: { name: 'Unyielding Heart', nameAr: 'قلب لا يلين', desc: 'استفزاز عدوين أماميين وتقليل هجومهم لمدة 8 ثوانٍ' },
+                    passive: { name: 'HP Boost', nameAr: 'تعزيز HP', desc: 'تقليل جميع الأضرار الواردة لهذا البطل' },
+                    expertise: { name: 'Super Sensing', nameAr: 'حاسة خارقة', desc: 'HP والهجوم والدفاع +20%، سرعة تبريد المهارات +10%' }
+                },
+                'Swift': {
+                    auto: { name: 'Targeted Strike', nameAr: 'ضربة مستهدفة', desc: 'مهاجمة الوحدة بأقل HP — ضرر فيزيائي انفجاري' },
+                    tactics: { name: 'Weakness Targeting', nameAr: 'استهداف الضعف', desc: 'مهاجمة 3 أعداء عشوائيين + تعزيز هجوم 5% تراكمي' },
+                    passive: { name: 'Precise Guidance', nameAr: 'توجيه دقيق', desc: 'يزيد ضرر الهجوم مع كل استخدام — تراكمي حتى نهاية المعركة' },
+                    expertise: { name: 'Super Sensing', nameAr: 'حاسة خارقة', desc: 'HP والهجوم والدفاع +20%، سرعة تبريد المهارات +10%' }
+                },
+                'Adam': {
+                    auto: { name: 'MK43 Machine Gun', nameAr: 'رشاش MK43', desc: 'ضرر فيزيائي لعدو عشوائي واحد' },
+                    tactics: { name: 'Counter Defense', nameAr: 'دفاع مضاد', desc: 'وضع الدفاع المضاد لمدة 5 ثوانٍ — رد تلقائي على كل ضربة' },
+                    passive: { name: 'Spike Armor', nameAr: 'درع شوكي', desc: 'تقليل ضرر الصف الأمامي — تأثير مضاعف في وضع الدفاع المضاد' },
+                    expertise: { name: 'Super Sensing', nameAr: 'حاسة خارقة', desc: 'HP والهجوم والدفاع +20%، سرعة تبريد المهارات +10%' }
+                }
+            };
 
             // ── State ──
             let selectedStars = 0;
@@ -1914,20 +2008,61 @@
                 });
             }
 
-            // ── Hero Database Rendering ──
             // ── Hero Avatar Helper ──
             function heroAvatar(hero, size = 48) {
                 if (hero.img) {
                     return `<img src="${hero.img}" alt="${hero.name}" style="width:${size}px;height:${size}px;border-radius:10px;object-fit:cover;border:2px solid ${RARITY_COLORS[hero.rarity]};box-shadow:0 2px 8px rgba(0,0,0,.3);" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
                             <div style="display:none;width:${size}px;height:${size}px;border-radius:10px;border:2px solid ${RARITY_COLORS[hero.rarity]};background:linear-gradient(135deg,${RARITY_COLORS[hero.rarity]}33,${RARITY_COLORS[hero.rarity]}11);align-items:center;justify-content:center;font-weight:900;font-size:${Math.round(size * .45)}px;color:${RARITY_COLORS[hero.rarity]};">${hero.name[0]}</div>`;
                 } else {
-                    const gradients = { UR: 'linear-gradient(135deg,#f6ad55,#ed8936)', SSR: 'linear-gradient(135deg,#b794f4,#9f7aea)', SR: 'linear-gradient(135deg,#63b3ed,#4299e1)' };
-                    return `<div style="width:${size}px;height:${size}px;border-radius:10px;border:2px solid ${RARITY_COLORS[hero.rarity]};background:${gradients[hero.rarity]};display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${Math.round(size * .45)}px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.4);flex-shrink:0;">${hero.name[0]}</div>`;
+                    const typeGradients = {
+                        tank: { SSR: 'linear-gradient(135deg,#9b59b6,#8e44ad,#6c3483)', SR: 'linear-gradient(135deg,#5dade2,#2e86c1,#1a5276)' },
+                        plane: { SSR: 'linear-gradient(135deg,#a569bd,#7d3c98,#5b2c6f)', SR: 'linear-gradient(135deg,#48c9b0,#1abc9c,#148f77)' },
+                        missile: { SSR: 'linear-gradient(135deg,#bb8fce,#8e44ad,#6c3483)', SR: 'linear-gradient(135deg,#85c1e9,#3498db,#2471a3)' }
+                    };
+                    const typeIcons = { tank: '🟫', plane: '✈️', missile: '🚀' };
+                    const bg = typeGradients[hero.type]?.[hero.rarity] || `linear-gradient(135deg,${RARITY_COLORS[hero.rarity]},${RARITY_COLORS[hero.rarity]}88)`;
+                    return `<div style="width:${size}px;height:${size}px;border-radius:10px;border:2px solid ${RARITY_COLORS[hero.rarity]};background:${bg};display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.25);position:relative;">
+                        <div style="font-size:${Math.round(size * .3)}px;line-height:1;">${typeIcons[hero.type] || ''}</div>
+                        <div style="font-weight:900;font-size:${Math.round(size * .32)}px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5);line-height:1.1;">${hero.name[0]}</div>
+                    </div>`;
                 }
             }
 
             function renderHeroes() {
                 filterHeroes();
+            }
+
+            function toggleHeroSkills(heroName) {
+                const el = document.getElementById('skills-' + heroName);
+                if (!el) return;
+                if (el.style.maxHeight && el.style.maxHeight !== '0px') {
+                    el.style.maxHeight = '0px';
+                    el.style.opacity = '0';
+                    el.style.marginTop = '0';
+                } else {
+                    el.style.maxHeight = '400px';
+                    el.style.opacity = '1';
+                    el.style.marginTop = '10px';
+                }
+            }
+
+            function renderSkillsPanel(heroName) {
+                const skills = HERO_SKILLS[heroName];
+                if (!skills) return '';
+                return `<div id="skills-${heroName}" style="max-height:0;opacity:0;overflow:hidden;transition:all .3s ease;margin-top:0;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                        ${['auto', 'tactics', 'passive', 'expertise'].map(type => {
+                    const sk = skills[type];
+                    const st = SKILL_TYPES[type];
+                    return `<div style="padding:8px;background:${st.color}11;border-radius:10px;border-right:3px solid ${st.color};">
+                                <div style="font-size:.72rem;font-weight:700;color:${st.color};margin-bottom:3px;">${st.icon} ${st.name}</div>
+                                <div style="font-size:.7rem;font-weight:700;">${sk.nameAr}</div>
+                                <div style="font-size:.62rem;color:var(--text-sub);opacity:.7;">${sk.name}</div>
+                                <div style="font-size:.68rem;color:var(--text-sub);margin-top:3px;line-height:1.3;">${sk.desc}</div>
+                            </div>`;
+                }).join('')}
+                    </div>
+                </div>`;
             }
 
             function filterHeroes() {
@@ -1950,23 +2085,31 @@
                     return;
                 }
 
-                container.innerHTML = filtered.map(h => `
-                    <div style="padding:12px;margin-bottom:10px;background:var(--bg-body);border-radius:14px;border-right:4px solid ${RARITY_COLORS[h.rarity]};display:flex;align-items:center;gap:12px;transition:transform .15s;cursor:default;" onmouseover="this.style.transform='scale(1.01)'" onmouseout="this.style.transform='scale(1)'">
-                        <div style="flex-shrink:0;">${heroAvatar(h, 56)}</div>
-                        <div style="flex:1;min-width:0;">
-                            <div style="font-weight:800;font-size:1rem;margin-bottom:2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                                ${TYPE_NAMES[h.type]} ${h.nameAr}
-                                <span style="font-size:.72rem;color:${RARITY_COLORS[h.rarity]};font-weight:700;background:${RARITY_COLORS[h.rarity]}22;padding:1px 8px;border-radius:6px;">${h.rarity}</span>
-                                ${h.dmg ? `<span style="font-size:.68rem;opacity:.7;">${DMG_ICONS[h.dmg]} ${h.dmg === 'physical' ? 'فيزيائي' : 'طاقة'}</span>` : ''}
+                container.innerHTML = filtered.map(h => {
+                    const hasSkills = !!HERO_SKILLS[h.name];
+                    return `
+                    <div style="padding:12px;margin-bottom:10px;background:var(--bg-body);border-radius:14px;border-right:4px solid ${RARITY_COLORS[h.rarity]};transition:transform .15s;${hasSkills ? 'cursor:pointer;' : ''}" ${hasSkills ? `onclick="toggleHeroSkills('${h.name}')"` : ''} onmouseover="this.style.transform='scale(1.01)'" onmouseout="this.style.transform='scale(1)'">
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <div style="flex-shrink:0;">${heroAvatar(h, 56)}</div>
+                            <div style="flex:1;min-width:0;">
+                                <div style="font-weight:800;font-size:1rem;margin-bottom:2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                                    ${TYPE_NAMES[h.type]} ${h.nameAr}
+                                    <span style="font-size:.72rem;color:${RARITY_COLORS[h.rarity]};font-weight:700;background:${RARITY_COLORS[h.rarity]}22;padding:1px 8px;border-radius:6px;">${h.rarity}</span>
+                                    ${h.dmg ? `<span style="font-size:.68rem;opacity:.7;">${DMG_ICONS[h.dmg]} ${h.dmg === 'physical' ? 'فيزيائي' : 'طاقة'}</span>` : ''}
+                                </div>
+                                ${h.title ? `<div style="font-size:.72rem;color:${RARITY_COLORS[h.rarity]};opacity:.8;margin-bottom:2px;">«${h.title}»</div>` : ''}
+                                <div style="font-size:.78rem;color:var(--text-sub);">
+                                    ${ROLE_NAMES[h.role]} · ${h.desc}
+                                </div>
+                                <div style="font-size:.68rem;color:var(--text-sub);margin-top:3px;opacity:.6;display:flex;align-items:center;gap:8px;">
+                                    ${h.name}
+                                    ${hasSkills ? '<span style="font-size:.62rem;background:var(--primary);color:#fff;padding:1px 6px;border-radius:4px;">⬇ المهارات</span>' : ''}
+                                </div>
                             </div>
-                            ${h.title ? `<div style="font-size:.72rem;color:${RARITY_COLORS[h.rarity]};opacity:.8;margin-bottom:2px;">«${h.title}»</div>` : ''}
-                            <div style="font-size:.78rem;color:var(--text-sub);">
-                                ${ROLE_NAMES[h.role]} · ${h.desc}
-                            </div>
-                            <div style="font-size:.68rem;color:var(--text-sub);margin-top:3px;opacity:.6;">${h.name}</div>
                         </div>
-                    </div>
-                `).join('');
+                        ${hasSkills ? renderSkillsPanel(h.name) : ''}
+                    </div>`;
+                }).join('');
             }
 
             // ── EXP Calculator ──
