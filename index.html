@@ -1,666 +1,1185 @@
 <!DOCTYPE html>
+
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#1a202c">
-<title>Last War Calculator Pro</title>
+<meta name="theme-color" content="#667eea">
+<title>حاسبة الحرب الأخيرة Pro Max</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
-/* ── Reset & Base Variables ── */
 :root {
-  --primary: #6366f1; --primary-dark: #4f46e5;
-  --accent: #8b5cf6; --accent-glow: rgba(139, 92, 246, 0.4);
-  --bg-body: #f8fafc; --bg-card: rgba(255, 255, 255, 0.85);
-  --text-main: #1e293b; --text-sub: #64748b;
-  --border: rgba(148, 163, 184, 0.2);
-  --success: #10b981; --danger: #ef4444; --warning: #f59e0b;
-  --radius-lg: 24px; --radius-md: 16px; --radius-sm: 12px;
-  --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.08);
-  --glass: blur(16px) saturate(180%);
-  --safe-top: env(safe-area-inset-top);
-  --safe-bottom: env(safe-area-inset-bottom);
+  --primary:#667eea;--primary-dark:#5a6fd6;--accent:#764ba2;
+  --bg-body:#f0f2f5;--bg-card:rgba(255,255,255,.75);--bg-card-solid:#fff;
+  --text-main:#2d3748;--text-sub:#718096;--border:rgba(226,232,240,.6);
+  --success:#48bb78;--danger:#f56565;--warning:#ed8936;--info:#4299e1;
+  --radius:18px;--glass-blur:12px;--shadow:0 8px 32px rgba(0,0,0,.08)
 }
-
 [data-theme="dark"] {
-  --primary: #818cf8; --primary-dark: #6366f1;
-  --bg-body: #0f172a; --bg-card: rgba(30, 41, 59, 0.7);
-  --text-main: #f1f5f9; --text-sub: #94a3b8;
-  --border: rgba(255, 255, 255, 0.1);
-  --shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+  --primary:#7f9cf5;--primary-dark:#667eea;--accent:#5a67d8;
+  --bg-body:#0f172a;--bg-card:rgba(30,41,59,.8);--bg-card-solid:#1e293b;
+  --text-main:#f1f5f9;--text-sub:#94a3b8;--border:rgba(71,85,105,.5);
+  --shadow:0 8px 32px rgba(0,0,0,.3)
 }
-
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-body {
-  margin: 0; padding: 0;
-  font-family: 'Tajawal', sans-serif;
-  background: var(--bg-body); color: var(--text-main);
-  padding-bottom: calc(80px + var(--safe-bottom));
-  overflow-x: hidden;
-  transition: background 0.3s ease, color 0.3s ease;
-}
-
-/* Background Animation */
-body::before {
-  content: ''; position: fixed; inset: 0; z-index: -1;
-  background: 
-    radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 100% 100%, rgba(139, 92, 246, 0.15) 0%, transparent 50%);
-  animation: pulseBg 10s ease-in-out infinite alternate;
-}
-@keyframes pulseBg { 0% { transform: scale(1); } 100% { transform: scale(1.1); } }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;font-family:'Tajawal','Segoe UI',Tahoma,sans-serif}
+html{scroll-behavior:smooth}
+body{background:var(--bg-body);color:var(--text-main);padding-bottom:80px;transition:background .4s,color .4s;overflow-x:hidden}
+body::before{content:'';position:fixed;top:-50%;left:-50%;width:200%;height:200%;
+  background:radial-gradient(circle at 20% 20%,rgba(102,126,234,.08) 0%,transparent 50%),
+             radial-gradient(circle at 80% 80%,rgba(118,75,162,.06) 0%,transparent 50%);
+  z-index:-1;animation:bgFloat 20s ease-in-out infinite alternate}
+@keyframes bgFloat{0%{transform:translate(0,0)}100%{transform:translate(-5%,5%)}}
 
 /* ── Header ── */
-.app-header {
-  padding: calc(15px + var(--safe-top)) 20px 20px;
-  background: linear-gradient(135deg, var(--primary-dark), var(--accent));
-  color: white;
-  border-bottom-left-radius: 35px;
-  border-bottom-right-radius: 35px;
-  box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
-  position: relative;
-  z-index: 50;
-  display: flex; justify-content: space-between; align-items: flex-start;
-}
-.header-content h1 { font-size: 1.4rem; font-weight: 900; margin: 0; line-height: 1.2; }
-.header-content p { font-size: 0.8rem; opacity: 0.85; margin: 4px 0 0; font-weight: 500; }
-.theme-btn {
-  background: rgba(255,255,255,0.2); border: 0; width: 40px; height: 40px;
-  border-radius: 50%; color: white; font-size: 1.2rem; cursor: pointer;
-  backdrop-filter: blur(5px); display: grid; place-items: center;
-}
+.header{background:linear-gradient(135deg,#667eea 0%,#764ba2 50%,#f093fb 100%);
+color:#fff;padding:28px 15px;padding-top:max(28px,env(safe-area-inset-top));
+text-align:center;border-bottom-left-radius:30px;border-bottom-right-radius:30px;
+box-shadow:0 10px 40px rgba(102,126,234,.3);position:relative;margin-bottom:20px;overflow:hidden}
+.header::after{content:’’;position:absolute;top:-50%;left:-50%;width:200%;height:200%;
+background:radial-gradient(circle,rgba(255,255,255,.1) 0%,transparent 60%);
+animation:headerShine 6s ease-in-out infinite}
+@keyframes headerShine{0%,100%{transform:translate(-30%,-30%)}50%{transform:translate(30%,30%)}}
+.header h1{font-size:clamp(1.1rem,4vw,1.5rem);font-weight:800;margin-bottom:6px;
+text-shadow:0 2px 10px rgba(0,0,0,.2);position:relative}
+.header p{opacity:.9;font-size:clamp(.75rem,3vw,.85rem);position:relative}
+.theme-toggle{position:absolute;top:max(15px,env(safe-area-inset-top));left:15px;
+background:rgba(255,255,255,.2);border:none;width:44px;height:44px;border-radius:50%;
+display:flex;align-items:center;justify-content:center;font-size:1.3rem;cursor:pointer;
+backdrop-filter:blur(10px);transition:transform .3s,background .3s;z-index:10;color:#fff}
+.theme-toggle:hover{transform:scale(1.1);background:rgba(255,255,255,.3)}
 
-/* ── Navigation (Sticky Pills) ── */
-.nav-scroller {
-  position: sticky; top: 0; z-index: 40;
-  background: rgba(var(--bg-body), 0.8);
-  backdrop-filter: var(--glass); -webkit-backdrop-filter: var(--glass);
-  padding: 10px 0; margin-top: -10px; /* Pull up to overlap header slightly */
-}
-.nav-list {
-  display: flex; gap: 8px; padding: 0 15px;
-  overflow-x: auto; scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-}
-.nav-list::-webkit-scrollbar { display: none; }
-.nav-item {
-  flex: 0 0 auto; padding: 10px 18px;
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: 50px; color: var(--text-sub);
-  font-weight: 700; font-size: 0.9rem;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-}
-.nav-item.active {
-  background: var(--primary); color: white; border-color: var(--primary);
-  box-shadow: 0 4px 15px var(--accent-glow); transform: scale(1.05);
-}
+/* ── Tabs ── */
+.tabs-wrapper{position:sticky;top:0;z-index:100;backdrop-filter:blur(15px);
+background:rgba(240,242,245,.85);padding:10px 10px;transition:background .4s}
+[data-theme=“dark”] .tabs-wrapper{background:rgba(15,23,42,.9)}
+.tabs{display:flex;overflow-x:auto;gap:6px;padding:6px;background:var(–bg-card);
+border-radius:16px;box-shadow:var(–shadow);backdrop-filter:blur(var(–glass-blur));
+scrollbar-width:none;-webkit-overflow-scrolling:touch;white-space:nowrap}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;padding:10px 16px;border:none;background:transparent;
+color:var(–text-sub);font-weight:700;border-radius:12px;font-size:clamp(.78rem,3vw,.9rem);
+cursor:pointer;transition:all .3s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden}
+.tab::before{content:’’;position:absolute;inset:0;
+background:linear-gradient(135deg,var(–primary),var(–accent));
+opacity:0;transition:opacity .3s;border-radius:12px}
+.tab.active{color:#fff;box-shadow:0 4px 15px rgba(102,126,234,.35);transform:translateY(-1px)}
+.tab.active::before{opacity:1}
+.tab span{position:relative;z-index:1}
 
-/* ── Layout & Cards ── */
-.container { padding: 20px 15px; max-width: 600px; margin: 0 auto; }
-.tab-pane { display: none; animation: fadeIn 0.4s ease; }
-.tab-pane.active { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+/* ── Container & Layout ── */
+.container{max-width:800px;margin:0 auto;padding:0 12px}
+.tab-content{display:none;animation:slideUp .4s cubic-bezier(.4,0,.2,1)}
+.tab-content.active{display:block}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 
-.card {
-  background: var(--bg-card); backdrop-filter: var(--glass);
-  -webkit-backdrop-filter: var(--glass);
-  border-radius: var(--radius-lg); padding: 20px;
-  margin-bottom: 20px;
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow);
-}
-.card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
-.card-header h2 { font-size: 1.1rem; font-weight: 800; margin: 0; color: var(--primary); }
-.card-icon { font-size: 1.2rem; }
+/* ── Cards ── */
+.card{background:var(–bg-card);border-radius:var(–radius);padding:18px;margin-bottom:14px;
+box-shadow:var(–shadow);border:1px solid var(–border);backdrop-filter:blur(var(–glass-blur));
+transition:transform .2s,box-shadow .2s}
+.card:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(0,0,0,.12)}
+.card h2{font-size:1.05rem;color:var(–primary);margin-bottom:14px;
+display:flex;align-items:center;gap:8px;font-weight:800}
 
-/* ── Inputs & Forms ── */
-.form-group { margin-bottom: 18px; position: relative; }
-.form-group label {
-  display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-sub);
-  margin-bottom: 8px; margin-right: 4px;
-}
-input, select {
-  width: 100%; height: 50px;
-  padding: 0 16px; font-size: 16px; /* Prevents iOS Zoom */
-  border-radius: var(--radius-md); border: 2px solid var(--border);
-  background: rgba(255,255,255,0.05); color: var(--text-main);
-  font-family: inherit; font-weight: 600;
-  transition: 0.3s; -webkit-appearance: none;
-}
-input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px var(--accent-glow); background: var(--bg-body); }
-.suffix-badge {
-  position: absolute; left: 12px; top: 38px;
-  background: var(--border); padding: 4px 8px;
-  border-radius: 6px; font-size: 0.75rem; font-weight: 700;
-}
+/* ── Form Elements ── */
+.input-group{margin-bottom:16px}
+label{display:block;margin-bottom:7px;color:var(–text-sub);font-size:.88rem;font-weight:700}
+input[type=“text”],input[type=“number”],select{
+width:100%;padding:13px 14px;border:2px solid var(–border);border-radius:14px;
+background:var(–bg-body);color:var(–text-main);font-size:16px;
+font-family:‘Tajawal’,sans-serif;transition:all .3s;appearance:none;-webkit-appearance:none}
+input:focus,select:focus{outline:none;border-color:var(–primary);
+box-shadow:0 0 0 4px rgba(102,126,234,.12)}
+.preview-box{font-size:.82rem;color:var(–primary);margin-top:8px;padding:9px 13px;
+background:linear-gradient(135deg,rgba(102,126,234,.08),rgba(118,75,162,.05));
+border-radius:10px;display:flex;justify-content:space-between;align-items:center;font-weight:600}
 
-/* ── Interactive Grids ── */
-.select-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-  gap: 8px; margin-top: 8px;
-}
-.select-opt {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 12px 5px; background: var(--bg-body);
-  border: 2px solid var(--border); border-radius: var(--radius-sm);
-  cursor: pointer; transition: 0.2s; min-height: 70px;
-}
-.select-opt.active {
-  border-color: var(--primary); background: rgba(99, 102, 241, 0.1);
-  color: var(--primary); transform: translateY(-2px);
-}
-.select-opt span { font-size: 1.4rem; margin-bottom: 4px; display: block; }
-.select-opt small { font-size: 0.7rem; font-weight: 800; line-height: 1.2; text-align: center; }
+/* ── Grid Select ── */
+.grid-select{display:grid;grid-template-columns:repeat(auto-fit,minmax(58px,1fr));gap:7px}
+.select-item{background:var(–bg-body);border:2px solid var(–border);border-radius:12px;
+padding:9px 4px;text-align:center;cursor:pointer;transition:all .25s cubic-bezier(.4,0,.2,1);
+display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:62px}
+.select-item:active{transform:scale(.96)}
+.select-item.selected{border-color:var(–primary);
+background:linear-gradient(135deg,rgba(102,126,234,.15),rgba(118,75,162,.1));
+color:var(–primary);transform:scale(1.04);box-shadow:0 4px 15px rgba(102,126,234,.2)}
+.select-item span{font-size:1.1rem;display:block;margin-bottom:3px}
+.select-item small{font-size:.68rem;font-weight:700;line-height:1.3}
 
-/* ── Action Buttons ── */
-.btn-main {
-  width: 100%; padding: 16px; border: 0; border-radius: var(--radius-md);
-  font-size: 1rem; font-weight: 800; color: white;
-  background: linear-gradient(135deg, var(--primary), var(--accent));
-  box-shadow: 0 8px 20px var(--accent-glow);
-  cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;
-  transition: transform 0.2s; font-family: inherit;
-}
-.btn-main:active { transform: scale(0.97); }
-.btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-.btn-sec { background: var(--bg-body); color: var(--text-main); border: 2px solid var(--border); box-shadow: none; }
+/* ── Buttons ── */
+.action-buttons{display:flex;flex-direction:column;gap:10px;margin-top:20px}
+button.btn-lg{width:100%;padding:15px;border:none;border-radius:16px;font-size:1rem;
+font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+transition:all .3s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;
+font-family:‘Tajawal’,sans-serif;-webkit-appearance:none}
+button.btn-lg:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,var(–primary),var(–accent));color:#fff;
+box-shadow:0 6px 20px rgba(102,126,234,.3)}
+.btn-primary:hover{box-shadow:0 8px 30px rgba(102,126,234,.45);transform:translateY(-2px)}
+.btn-secondary{background:var(–bg-card);color:var(–text-main);
+border:2px solid var(–border)!important;box-shadow:var(–shadow)}
+.btn-success{background:linear-gradient(135deg,#48bb78,#38a169);color:#fff;
+box-shadow:0 6px 20px rgba(72,187,120,.3)}
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
-/* ── Stats Display ── */
-.stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-.stat-item {
-  background: var(--bg-body); padding: 12px; border-radius: var(--radius-sm);
-  text-align: center; border: 1px solid var(--border);
-}
-.stat-val { font-size: 1.3rem; font-weight: 900; }
-.stat-lbl { font-size: 0.75rem; color: var(--text-sub); margin-top: 4px; font-weight: 700; }
+/* ── Stats Grid ── */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.stat-box{background:var(–bg-body);padding:14px 10px;border-radius:14px;
+text-align:center;border:1px solid var(–border);transition:transform .2s}
+.stat-box:hover{transform:scale(1.02)}
+.stat-val{font-size:1.25rem;font-weight:800;color:var(–text-main)}
+.stat-lbl{font-size:.75rem;color:var(–text-sub);margin-top:4px;font-weight:600}
 
-/* ── Hero Grid ── */
-.hero-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-.hero-card {
-  background: var(--bg-card); border-radius: var(--radius-md); padding: 10px;
-  border: 1px solid var(--border); display: flex; align-items: center; gap: 10px;
-  cursor: pointer; transition: 0.2s; position: relative; overflow: hidden;
-}
-.hero-card::after { content:''; position: absolute; bottom: 0; right: 0; width: 0; height: 3px; background: var(--primary); transition: 0.3s; }
-.hero-card.expanded::after { width: 100%; }
-.hero-img-box { width: 45px; height: 45px; flex-shrink: 0; border-radius: 12px; position: relative; }
-.hero-img { width: 100%; height: 100%; border-radius: 12px; object-fit: cover; }
-.hero-badge { position: absolute; bottom: -4px; right: -4px; background: #000; color: #fff; font-size: 0.6rem; padding: 2px 4px; border-radius: 4px; font-weight: bold; }
+/* ── Type Badge ── */
+.type-badge{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;
+border-radius:25px;font-size:.85rem;font-weight:700;margin-bottom:12px;
+animation:badgePulse 2s ease-in-out infinite}
+@keyframes badgePulse{0%,100%{box-shadow:0 0 0 0 rgba(102,126,234,.2)}50%{box-shadow:0 0 0 8px rgba(102,126,234,0)}}
+.type-badge.advantage{background:rgba(72,187,120,.15);color:var(–success);border:2px solid var(–success)}
+.type-badge.disadvantage{background:rgba(245,101,101,.15);color:var(–danger);border:2px solid var(–danger)}
+.type-badge.neutral{background:rgba(237,137,54,.15);color:var(–warning);border:2px solid var(–warning)}
 
-/* ── Team Builder ── */
-.team-slots { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 15px 0; }
-.slot {
-  aspect-ratio: 1/1.2; border: 2px dashed var(--border); border-radius: 12px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  position: relative; background: var(--bg-body); cursor: pointer;
-}
-.slot.filled { border-style: solid; border-color: var(--primary); background: rgba(99, 102, 241, 0.05); }
-.remove-btn {
-  position: absolute; top: -5px; right: -5px; width: 18px; height: 18px;
-  background: var(--danger); border-radius: 50%; color: white;
-  display: flex; align-items: center; justify-content: center; font-size: 10px;
-}
+/* ── Battle Log ── */
+.battle-log{max-height:280px;overflow-y:auto;-webkit-overflow-scrolling:touch;
+margin-top:16px;padding:8px;background:var(–bg-body);border-radius:14px}
+.log-entry{padding:9px 11px;margin-bottom:7px;border-radius:10px;
+border-right:4px solid var(–primary);background:var(–bg-card);
+font-size:.82rem;display:flex;justify-content:space-between;align-items:center}
+.log-entry.critical{border-right-color:var(–warning);background:rgba(237,137,54,.08)}
 
-/* ── Results Area ── */
-.battle-res {
-  background: var(--bg-body); border-radius: var(--radius-md);
-  padding: 15px; margin-top: 15px; border-left: 4px solid var(--primary);
-}
-.log-item {
-  display: flex; justify-content: space-between; padding: 8px 0;
-  border-bottom: 1px solid var(--border); font-size: 0.85rem;
-}
-.log-item:last-child { border: 0; }
+/* ── VS Badge ── */
+.vs-badge{background:linear-gradient(135deg,var(–primary),var(–accent));color:#fff;
+width:46px;height:46px;border-radius:50%;display:flex;align-items:center;
+justify-content:center;font-weight:800;margin:-10px auto 10px;
+border:4px solid var(–bg-card-solid);position:relative;z-index:2;
+box-shadow:0 4px 15px rgba(102,126,234,.3);font-size:.88rem}
+
+/* ── Chart ── */
+.chart-wrapper{height:230px;position:relative;margin:12px 0}
+
+/* ── Saved Items ── */
+.saved-item{padding:13px;margin-bottom:9px;background:var(–bg-card);
+border:2px solid var(–border);border-radius:14px;cursor:pointer;
+display:flex;justify-content:space-between;align-items:center;
+transition:all .25s;backdrop-filter:blur(var(–glass-blur))}
+.saved-item:hover{border-color:var(–primary);transform:translateX(-3px)}
+.delete-btn{background:linear-gradient(135deg,#f56565,#e53e3e);color:#fff;border:none;
+padding:8px 12px;border-radius:10px;font-size:.78rem;cursor:pointer;font-weight:700;
+font-family:‘Tajawal’,sans-serif;white-space:nowrap;flex-shrink:0}
+
+/* ── Info Tooltip ── */
+.info-tooltip{display:inline-flex;align-items:center;justify-content:center;
+width:19px;height:19px;background:linear-gradient(135deg,var(–primary),var(–accent));
+color:#fff;border-radius:50%;font-size:10px;margin-left:4px;cursor:help;flex-shrink:0}
+
+/* ── Warn Note ── */
+.warn-note{font-size:.72rem;color:var(–text-sub);margin-top:8px;padding:8px 11px;
+background:rgba(237,137,54,.08);border-radius:8px;border-right:3px solid var(–warning);line-height:1.5}
 
 /* ── Footer ── */
-.footer {
-  text-align: center; padding: 30px 20px; color: var(--text-sub);
-  font-size: 0.8rem; opacity: 0.7;
+.footer{background:linear-gradient(135deg,#1a202c 0%,#0f172a 100%);color:#fff;
+padding:28px 15px;text-align:center;margin-top:30px;position:relative;overflow:hidden}
+.footer::before{content:’’;position:absolute;top:0;left:0;right:0;height:4px;
+background:linear-gradient(90deg,#ffd700,#ff6b6b,#667eea,#48bb78,#ffd700);
+background-size:200% 100%;animation:footerGlow 3s linear infinite}
+@keyframes footerGlow{0%{background-position:0% 0%}100%{background-position:200% 0%}}
+.footer-avatar{width:72px;height:72px;border-radius:50%;border:3px solid #ffd700;
+margin-bottom:13px;box-shadow:0 0 20px rgba(255,215,0,.3);display:block;margin-left:auto;margin-right:auto}
+.footer h3{color:#ffd700;font-size:1.2rem;margin-bottom:7px;font-weight:800}
+.footer p{color:#94a3b8;font-size:.83rem;margin:3px 0}
+
+/* ── Mobile Specific ── */
+@media(max-width:480px){
+.header{padding:22px 12px;padding-top:max(22px,env(safe-area-inset-top));margin-bottom:14px}
+.card{padding:14px;border-radius:14px}
+.stats-grid{gap:8px}
+.stat-val{font-size:1.1rem}
+.grid-select{gap:6px}
+.select-item{min-height:56px;padding:7px 3px}
+.select-item span{font-size:1rem}
+input[type=“text”],input[type=“number”],select{padding:12px 13px}
+.btn-row{gap:8px}
+button.btn-lg{padding:13px;font-size:.95rem}
 }
-
-/* Helpers */
-.text-grad { background: linear-gradient(to right, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.tag { padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; display: inline-block; }
-.tag.green { background: rgba(16, 185, 129, 0.15); color: var(--success); }
-.tag.red { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
 </style>
+
 </head>
-<body data-theme="dark">
+<body>
 
-<header class="app-header">
-  <div class="header-content">
-    <h1>حاسبة الحرب</h1>
-    <p>Last War: Survival Pro Tool</p>
-  </div>
-  <button class="theme-btn" onclick="toggleTheme()">☀️</button>
-</header>
+<div class="header">
+  <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+  <h1>⚔️ حاسبة الحرب الأخيرة Pro Max</h1>
+  <p>محاكي قتال متقدم + أدوات شاملة v5.2 | Built by Distopǐa</p>
+</div>
 
-<nav class="nav-scroller">
-  <div class="nav-list">
-    <div class="nav-item active" onclick="switchTab('calc', this)"> الحاسبة</div>
-    <div class="nav-item" onclick="switchTab('compare', this)">⚔️ مقارنة</div>
-    <div class="nav-item" onclick="switchTab('heroes', this)">🦸 الأبطال</div>
-    <div class="nav-item" onclick="switchTab('team', this)">👥 الفريق</div>
-    <div class="nav-item" onclick="switchTab('tools', this)">🛠️ أدوات</div>
+<div class="tabs-wrapper">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('calculator')"><span>🎯 الحاسبة</span></button>
+    <button class="tab" onclick="switchTab('compare')"><span>⚔️ مقارنة</span></button>
+    <button class="tab" onclick="switchTab('heroes')"><span>🦸 الأبطال</span></button>
+    <button class="tab" onclick="switchTab('tierlist')"><span>🏆 Tier List</span></button>
+    <button class="tab" onclick="switchTab('teambuilder')"><span>👥 الفريق</span></button>
+    <button class="tab" onclick="switchTab('tools')"><span>🛠️ أدوات</span></button>
+    <button class="tab" onclick="switchTab('saved')"><span>💾 المحفوظات</span></button>
+    <button class="tab" onclick="switchTab('charts')"><span>📊 الرسوم</span></button>
   </div>
-</nav>
+</div>
 
 <div class="container">
 
-  <div id="calc" class="tab-pane active">
-    
+  <!-- ══════════ CALCULATOR TAB ══════════ -->
+
+  <div id="calculator" class="tab-content active">
     <div class="card">
-      <div class="card-header"><span class="card-icon">🗡️</span><h2>بيانات المهاجم</h2></div>
-      
-      <div class="form-group">
+      <h2>🗡️ المهاجم</h2>
+      <div class="input-group">
         <label>نوع الوحدة</label>
-        <select id="at_type" onchange="updateCalc()">
+        <select id="attackerType" onchange="updatePreview()">
           <option value="tank">🟫 دبابة (Tank)</option>
           <option value="plane">✈️ طائرة (Aircraft)</option>
           <option value="missile">🚀 صاروخ (Missile)</option>
         </select>
       </div>
-
-      <div class="form-group">
-        <label>قوة الهجوم (Attack)</label>
-        <input type="text" id="at_val" value="65.2K" inputmode="decimal" oninput="updateCalc()">
-        <span class="suffix-badge" id="at_display">65,200</span>
+      <div class="input-group">
+        <label>قوة الهجوم</label>
+        <input type="text" id="attack" value="65.2K" inputmode="decimal" oninput="updatePreview()">
+        <div class="preview-box"><span>القيمة:</span><strong id="attackValue">65,200</strong></div>
       </div>
-
-      <div class="form-group">
-        <label>مستوى النجوم ⭐</label>
-        <div class="select-grid" id="star_grid">
-          </div>
-      </div>
-
-      <div class="form-group">
-        <label>نوع المهارة ⚡</label>
-        <div class="select-grid" style="grid-template-columns: repeat(3, 1fr);">
-          <div class="select-opt active" onclick="setSkill(0, this)"><span>⚔️</span><small>عادية</small></div>
-          <div class="select-opt" onclick="setSkill(1, this)"><span>🔥</span><small>خاصة</small></div>
-          <div class="select-opt" onclick="setSkill(2, this)"><span>💥</span><small>نهائية</small></div>
+      <div class="input-group">
+        <label><span class="info-tooltip">ℹ</span>مستوى النجوم <span style="font-size:.7rem;color:var(--warning);font-weight:600;">⚠️ تقريبي</span></label>
+        <div class="grid-select">
+          <div class="select-item selected" onclick="selectStars(0,this)"><span>⭐</span><small>+30%</small></div>
+          <div class="select-item" onclick="selectStars(1,this)"><span>⭐⭐</span><small>+70%</small></div>
+          <div class="select-item" onclick="selectStars(2,this)"><span>⭐⭐⭐</span><small>+120%</small></div>
+          <div class="select-item" onclick="selectStars(3,this)"><span>⭐⭐⭐⭐</span><small>+185%</small></div>
+          <div class="select-item" onclick="selectStars(4,this)"><span>⭐⭐⭐⭐⭐</span><small>+270%</small></div>
         </div>
       </div>
-
-      <div class="stats-row">
-        <div class="form-group" style="margin:0">
-          <label>حرج %</label>
-          <input type="number" id="crit_rate" value="20">
+      <div class="input-group">
+        <label><span class="info-tooltip">ℹ</span>نوع المهارة <span style="font-size:.7rem;color:var(--warning);font-weight:600;">⚠️ تقريبي</span></label>
+        <div class="grid-select" style="grid-template-columns:repeat(3,1fr);">
+          <div class="select-item selected" onclick="selectSkill(0,this)"><span>⚔️</span><small>عادية<br>100%</small></div>
+          <div class="select-item" onclick="selectSkill(1,this)"><span>🔥</span><small>خاصة<br>345%</small></div>
+          <div class="select-item" onclick="selectSkill(2,this)"><span>💥</span><small>نهائية<br>405%</small></div>
         </div>
-        <div class="form-group" style="margin:0">
-          <label>ضرر حرج %</label>
-          <input type="number" id="crit_dmg" value="150">
+        <div class="warn-note">⚠️ نسب النجوم والمهارات تقريبية — كل بطل له نسب مختلفة حسب مهاراته ومستواه</div>
+      </div>
+      <div class="stats-grid">
+        <div class="input-group" style="margin:0">
+          <label>نسبة الحرج %</label>
+          <input type="number" id="critChance" value="20" inputmode="numeric" oninput="updatePreview()">
+          <div class="preview-box" style="margin-top:7px"><span>1 من كل</span><strong id="critFreq">5</strong></div>
         </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-header"><span class="card-icon">🛡️</span><h2>بيانات المدافع</h2></div>
-      
-      <div class="form-group">
-        <label>نوع الوحدة</label>
-        <select id="def_type" onchange="updateCalc()">
-          <option value="tank">🟫 دبابة</option>
-          <option value="plane">✈️ طائرة</option>
-          <option value="missile">🚀 صاروخ</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>الصحة (HP)</label>
-        <input type="text" id="hp_val" value="1.4M" oninput="updateCalc()">
-        <span class="suffix-badge" id="hp_display">1,400,000</span>
-      </div>
-
-      <div class="stats-row">
-        <div class="form-group" style="margin:0">
-          <label>الدفاع</label>
-          <input type="text" id="def_val" value="8.4K">
-        </div>
-        <div class="form-group" style="margin:0">
-          <label>مقاومة %</label>
-          <input type="number" id="res_val" value="10">
+        <div class="input-group" style="margin:0">
+          <label>ضرر الحرج %</label>
+          <input type="number" id="critDamage" value="150" inputmode="numeric" oninput="updatePreview()">
+          <div class="preview-box" style="margin-top:7px"><span>مضاعف</span><strong id="critMulti">×1.5</strong></div>
         </div>
       </div>
     </div>
 
-    <div id="type_badge" style="text-align:center; margin-bottom:15px;"></div>
-
-    <button class="btn-main" onclick="simulate()">
-      <span>🚀 بدء المحاكاة</span>
-    </button>
-    
-    <div id="sim_result" style="display:none;"></div>
+```
+<div class="card">
+  <h2>🛡️ المدافع</h2>
+  <div class="input-group">
+    <label>نوع الوحدة</label>
+    <select id="defenderType" onchange="updatePreview()">
+      <option value="tank">🟫 دبابة (Tank)</option>
+      <option value="plane">✈️ طائرة (Aircraft)</option>
+      <option value="missile">🚀 صاروخ (Missile)</option>
+    </select>
   </div>
-
-  <div id="compare" class="tab-pane">
-    <div class="card">
-      <div class="card-header"><h2>مقارنة الوحدات</h2></div>
-      <div class="stats-row">
-        <div>
-          <label style="font-size:0.8rem;">الوحدة 1</label>
-          <select id="c1_type"><option value="tank">دبابة</option><option value="plane">طائرة</option><option value="missile">صاروخ</option></select>
-          <input type="text" id="c1_atk" placeholder="الهجوم" style="margin-top:5px;">
-        </div>
-        <div style="display:flex; align-items:center; justify-content:center; font-weight:900; color:var(--danger);">VS</div>
-        <div>
-          <label style="font-size:0.8rem;">الوحدة 2</label>
-          <select id="c2_type"><option value="tank">دبابة</option><option value="plane">طائرة</option><option value="missile">صاروخ</option></select>
-          <input type="text" id="c2_atk" placeholder="الهجوم" style="margin-top:5px;">
-        </div>
-      </div>
-      <button class="btn-main btn-sec" onclick="doCompare()" style="margin-top:15px;">🔍 قارن</button>
-      <div id="comp_res" style="margin-top:15px;"></div>
+  <div class="input-group">
+    <label>نقاط الصحة (HP)</label>
+    <input type="text" id="health" value="1.4M" inputmode="decimal" oninput="updatePreview()">
+    <div class="preview-box"><span>القيمة:</span><strong id="healthValue">1,400,000</strong></div>
+  </div>
+  <div class="stats-grid">
+    <div class="input-group" style="margin:0">
+      <label>الدفاع</label>
+      <input type="text" id="defense" value="8.4K" inputmode="decimal" oninput="updatePreview()">
+    </div>
+    <div class="input-group" style="margin:0">
+      <label>المقاومة %</label>
+      <input type="number" id="resistance" value="10" inputmode="numeric">
     </div>
   </div>
-
-  <div id="heroes" class="tab-pane">
-    <div class="form-group">
-      <input type="text" id="hero_search" placeholder="🔍 ابحث عن بطل (مثال: كيمبرلي)" oninput="filterHeroes()">
-    </div>
-    <div class="select-grid" style="grid-template-columns: repeat(4,1fr); margin-bottom:15px;">
-      <div class="select-opt" onclick="filterType('all')"><small>الكل</small></div>
-      <div class="select-opt" onclick="filterType('tank')"><small>دبابة</small></div>
-      <div class="select-opt" onclick="filterType('plane')"><small>طائرة</small></div>
-      <div class="select-opt" onclick="filterType('missile')"><small>صاروخ</small></div>
-    </div>
-    <div id="hero_list" class="hero-grid"></div>
+  <div class="input-group" style="margin-top:14px">
+    <label>اسم الحساب (اختياري)</label>
+    <input type="text" id="calcName" placeholder="مثال: دبابتي الرئيسية">
   </div>
-
-  <div id="team" class="tab-pane">
-    <div class="card">
-      <div class="card-header"><h2>تشكيل الفريق</h2></div>
-      <div class="team-slots" id="team_slots"></div>
-      <div class="battle-res" id="team_stats">
-        اختر 5 أبطال لرؤية البونص
-      </div>
-      <button class="btn-main btn-sec" onclick="clearTeam()" style="margin-top:10px;">🗑️ تفريغ</button>
-    </div>
-    <div class="hero-grid" id="team_picker"></div>
-  </div>
-
-  <div id="tools" class="tab-pane">
-    <div class="card">
-      <div class="card-header"><h2>📊 حاسبة الخبرة (EXP)</h2></div>
-      <div class="stats-row">
-        <input type="number" id="exp_from" placeholder="من مستوى">
-        <input type="number" id="exp_to" placeholder="إلى مستوى">
-      </div>
-      <button class="btn-main" onclick="calcExp()">احسب</button>
-      <div id="exp_res" style="margin-top:10px; font-weight:bold; text-align:center;"></div>
-    </div>
-  </div>
-
 </div>
 
-<footer class="footer">
-  <p>Designed for Last War Commanders</p>
-  <p style="font-size:0.7rem;">Distopǐa Pro Edition v6.0</p>
-</footer>
+<div class="card">
+  <h2>👥 إعدادات الفريق</h2>
+  <div class="input-group">
+    <label><span class="info-tooltip">ℹ</span>بونص التشكيلة (Lineup Bonus)</label>
+    <div class="grid-select" style="grid-template-columns:repeat(4,1fr);">
+      <div class="select-item" onclick="selectLineup(0,this)"><span>👤</span><small>بدون<br>0%</small></div>
+      <div class="select-item selected" onclick="selectLineup(1,this)"><span>👥</span><small>3 نفس<br>+5%</small></div>
+      <div class="select-item" onclick="selectLineup(2,this)"><span>👥👤</span><small>3+2<br>+10%</small></div>
+      <div class="select-item" onclick="selectLineup(3,this)"><span>👥👥</span><small>4 نفس<br>+15%</small></div>
+    </div>
+    <div class="grid-select" style="grid-template-columns:1fr;margin-top:6px;">
+      <div class="select-item" onclick="selectLineup(4,this)"><span>👥👥👤</span><small>5 نفس النوع — +20% هجوم/HP/دفاع</small></div>
+    </div>
+  </div>
+  <div class="stats-grid">
+    <div class="input-group" style="margin:0">
+      <label>🎯 الروح المعنوية %</label>
+      <input type="number" id="morale" value="100" inputmode="numeric" min="50" max="200" oninput="updatePreview()">
+      <div class="preview-box" style="margin-top:7px"><span>مضاعف</span><strong id="moraleMulti">×1.00</strong></div>
+    </div>
+    <div class="input-group" style="margin:0">
+      <label>📊 معلومة</label>
+      <div style="font-size:.75rem;color:var(--text-sub);padding:10px;background:var(--bg-body);border-radius:10px;line-height:1.7;height:100%;">
+        100% = لا تأثير<br>&gt;100% = ضرر إضافي<br>&lt;100% = ضرر أقل
+      </div>
+    </div>
+  </div>
+
+  <div id="typeAdvantagePreview" style="text-align:center;margin:14px 0;"></div>
+
+  <div class="action-buttons">
+    <button class="btn-lg btn-primary" onclick="simulateBattle()"><span>🎯</span> بدء المحاكاة</button>
+    <div class="btn-row">
+      <button class="btn-lg btn-secondary" onclick="saveCalculation()">💾 حفظ</button>
+      <button class="btn-lg btn-success" onclick="shareAsImage()">📸 صورة</button>
+    </div>
+  </div>
+  <div id="results" style="display:none;margin-top:20px;"></div>
+</div>
+```
+
+  </div><!-- /calculator -->
+
+  <!-- ══════════ COMPARE TAB ══════════ -->
+
+  <div id="compare" class="tab-content">
+    <div class="card">
+      <h2>الوحدة الأولى</h2>
+      <div class="input-group"><label>نوع الوحدة</label><select id="comp1Type"><option value="tank">🟫 دبابة</option><option value="plane">✈️ طائرة</option><option value="missile">🚀 صاروخ</option></select></div>
+      <div class="input-group"><label>الهجوم</label><input type="text" id="comp1Attack" value="65.2K"></div>
+      <div class="input-group"><label>النجوم</label><select id="comp1Stars"><option value="0">⭐ +30%</option><option value="1">⭐⭐ +70%</option><option value="2">⭐⭐⭐ +120%</option><option value="3">⭐⭐⭐⭐ +185%</option><option value="4">⭐⭐⭐⭐⭐ +270%</option></select></div>
+    </div>
+    <div class="vs-badge">VS</div>
+    <div class="card">
+      <h2>الوحدة الثانية</h2>
+      <div class="input-group"><label>نوع الوحدة</label><select id="comp2Type"><option value="tank">🟫 دبابة</option><option value="plane">✈️ طائرة</option><option value="missile">🚀 صاروخ</option></select></div>
+      <div class="input-group"><label>الهجوم</label><input type="text" id="comp2Attack" value="70K"></div>
+      <div class="input-group"><label>النجوم</label><select id="comp2Stars"><option value="0">⭐ +30%</option><option value="1">⭐⭐ +70%</option><option value="2">⭐⭐⭐ +120%</option><option value="3">⭐⭐⭐⭐ +185%</option><option value="4">⭐⭐⭐⭐⭐ +270%</option></select></div>
+    </div>
+    <button class="btn-lg btn-primary" onclick="compareUnits()">🔍 قارن الآن</button>
+    <div id="compareResults"></div>
+  </div><!-- /compare -->
+
+  <!-- ══════════ HEROES TAB ══════════ -->
+
+  <div id="heroes" class="tab-content">
+    <div class="card">
+      <h2>🦸 قاعدة بيانات الأبطال</h2>
+      <div class="input-group">
+        <input type="text" id="heroSearch" placeholder="🔍 ابحث عن بطل..." oninput="filterHeroes()">
+      </div>
+      <div class="stats-grid" style="margin-bottom:12px;">
+        <select id="heroFilterType" onchange="filterHeroes()" style="width:100%;padding:11px;border-radius:10px;border:1px solid var(--border);background:var(--bg-body);color:var(--text-main);font-family:Tajawal;font-size:14px;">
+          <option value="all">كل الأنواع</option><option value="tank">🟫 دبابة</option><option value="plane">✈️ طائرة</option><option value="missile">🚀 صاروخ</option>
+        </select>
+        <select id="heroFilterRarity" onchange="filterHeroes()" style="width:100%;padding:11px;border-radius:10px;border:1px solid var(--border);background:var(--bg-body);color:var(--text-main);font-family:Tajawal;font-size:14px;">
+          <option value="all">كل الندرات</option><option value="UR">🟠 UR</option><option value="SSR">🟣 SSR</option><option value="SR">🔵 SR</option>
+        </select>
+      </div>
+      <div id="heroList"></div>
+    </div>
+  </div><!-- /heroes -->
+
+  <!-- ══════════ TIER LIST TAB ══════════ -->
+
+  <div id="tierlist" class="tab-content">
+    <div class="card">
+      <h2>🏆 Tier List — تصنيف الأبطال</h2>
+      <p style="font-size:.82rem;color:var(--text-sub);margin-bottom:14px;">مبني على الميتا الحالية — مصدر: lastwarhandbook.com</p>
+      <div id="tierListContent"></div>
+    </div>
+  </div><!-- /tierlist -->
+
+  <!-- ══════════ TEAM BUILDER TAB ══════════ -->
+
+  <div id="teambuilder" class="tab-content">
+    <div class="card">
+      <h2>👥 بناء الفريق</h2>
+      <p style="font-size:.82rem;color:var(--text-sub);margin-bottom:12px;">اختر 5 أبطال لحساب البونص والتوافق</p>
+      <div class="stats-grid" style="margin-bottom:12px;">
+        <select id="tbFilter" onchange="renderTeamBuilderList()" style="width:100%;padding:11px;border-radius:10px;border:1px solid var(--border);background:var(--bg-body);color:var(--text-main);font-family:Tajawal;font-size:14px;">
+          <option value="all">كل الأنواع</option><option value="tank">🟫 دبابة</option><option value="plane">✈️ طائرة</option><option value="missile">🚀 صاروخ</option>
+        </select>
+        <button class="btn-lg btn-primary" onclick="clearTeam()" style="margin:0;">🗑️ مسح الفريق</button>
+      </div>
+      <div style="margin-bottom:14px;">
+        <h3 style="margin-bottom:8px;font-size:.95rem;">فريقك (<span id="teamCount">0</span>/5)</h3>
+        <div id="teamSlots" style="display:grid;grid-template-columns:repeat(5,1fr);gap:7px;"></div>
+      </div>
+      <div id="teamAnalysis"></div>
+      <div style="margin-top:14px;">
+        <h3 style="margin-bottom:8px;font-size:.95rem;">اختر الأبطال</h3>
+        <div id="tbHeroList"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>⭐ الفرق الموصى بها (Meta)</h2>
+      <div id="metaTeams"></div>
+    </div>
+  </div><!-- /teambuilder -->
+
+  <!-- ══════════ TOOLS TAB ══════════ -->
+
+  <div id="tools" class="tab-content">
+    <div class="card">
+      <h2>📊 حاسبة EXP البطل</h2>
+      <p style="font-size:.82rem;color:var(--text-sub);margin-bottom:12px;">احسب كمية الخبرة اللازمة لترقية بطلك (حتى مستوى 175)</p>
+      <div class="stats-grid">
+        <div class="input-group" style="margin:0"><label>من مستوى</label><input type="number" id="expFrom" value="1" min="1" max="174" inputmode="numeric"></div>
+        <div class="input-group" style="margin:0"><label>إلى مستوى</label><input type="number" id="expTo" value="60" min="2" max="175" inputmode="numeric"></div>
+      </div>
+      <button class="btn-lg btn-primary" onclick="calculateEXP()" style="margin-top:12px;">📊 احسب EXP</button>
+      <div id="expResults"></div>
+    </div>
+
+```
+<div class="card">
+  <h2>🎖️ حاسبة ميداليات المهارات</h2>
+  <p style="font-size:.82rem;color:var(--text-sub);margin-bottom:12px;">احسب عدد الميداليات المطلوبة لترقية المهارات</p>
+  <div class="input-group">
+    <label>ندرة البطل</label>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+      <button class="select-item selected" onclick="selectMedalRarity('UR',this)" style="border-radius:10px;border:2px solid var(--border);background:var(--bg-card);color:var(--text-main);cursor:pointer;font-family:Tajawal;font-size:.9rem;">🟠 UR</button>
+      <button class="select-item" onclick="selectMedalRarity('SSR',this)" style="border-radius:10px;border:2px solid var(--border);background:var(--bg-card);color:var(--text-main);cursor:pointer;font-family:Tajawal;font-size:.9rem;">🟣 SSR</button>
+      <button class="select-item" onclick="selectMedalRarity('SR',this)" style="border-radius:10px;border:2px solid var(--border);background:var(--bg-card);color:var(--text-main);cursor:pointer;font-family:Tajawal;font-size:.9rem;">🔵 SR</button>
+    </div>
+  </div>
+  <div class="stats-grid">
+    <div class="input-group" style="margin:0"><label>من مستوى مهارة</label><input type="number" id="medalFrom" value="1" min="1" max="39" inputmode="numeric"></div>
+    <div class="input-group" style="margin:0"><label>إلى مستوى مهارة</label><input type="number" id="medalTo" value="30" min="2" max="40" inputmode="numeric"></div>
+  </div>
+  <div class="input-group" style="margin-top:12px"><label>عدد المهارات</label><input type="number" id="medalSkillCount" value="1" min="1" max="4" inputmode="numeric"></div>
+  <button class="btn-lg btn-primary" onclick="calculateMedals()" style="margin-top:8px;">🎖️ احسب الميداليات</button>
+  <div id="medalResults"></div>
+</div>
+
+<div class="card">
+  <h2>💎 حاسبة شظايا الأبطال</h2>
+  <p style="font-size:.82rem;color:var(--text-sub);margin-bottom:12px;">احسب عدد الشظايا المطلوبة لترقية النجوم</p>
+  <div class="stats-grid">
+    <div class="input-group" style="margin:0"><label>من نجمة</label>
+      <select id="shardFrom" style="width:100%;padding:11px;border-radius:10px;border:1px solid var(--border);background:var(--bg-body);color:var(--text-main);font-family:Tajawal;font-size:14px;">
+        <option value="0">0 (بدون)</option><option value="1">⭐ 1</option><option value="2">⭐⭐ 2</option><option value="3">⭐⭐⭐ 3</option><option value="4">⭐⭐⭐⭐ 4</option>
+      </select>
+    </div>
+    <div class="input-group" style="margin:0"><label>إلى نجمة</label>
+      <select id="shardTo" style="width:100%;padding:11px;border-radius:10px;border:1px solid var(--border);background:var(--bg-body);color:var(--text-main);font-family:Tajawal;font-size:14px;">
+        <option value="1">⭐ 1</option><option value="2">⭐⭐ 2</option><option value="3">⭐⭐⭐ 3</option><option value="4">⭐⭐⭐⭐ 4</option><option value="5" selected>⭐⭐⭐⭐⭐ 5</option>
+      </select>
+    </div>
+  </div>
+  <button class="btn-lg btn-primary" onclick="calculateShards()" style="margin-top:12px;">💎 احسب الشظايا</button>
+  <div id="shardResults"></div>
+</div>
+
+<div class="card">
+  <h2>🏥 حاسبة الشفاء</h2>
+  <p style="font-size:.82rem;color:var(--text-sub);margin-bottom:12px;">احسب سعة المستشفى والوقت اللازم للشفاء</p>
+  <div class="stats-grid">
+    <div class="input-group" style="margin:0"><label>عدد الجنود المصابين</label><input type="text" id="healWounded" value="50000" inputmode="numeric"></div>
+    <div class="input-group" style="margin:0"><label>سعة المستشفى</label><input type="text" id="healCapacity" value="20000" inputmode="numeric"></div>
+  </div>
+  <div class="stats-grid" style="margin-top:10px;">
+    <div class="input-group" style="margin:0"><label>وقت الشفاء/جندي (ثانية)</label><input type="number" id="healTime" value="5" min="1" inputmode="numeric"></div>
+    <div class="input-group" style="margin:0"><label>مساعدة الحلف (تقليل %)</label><input type="number" id="healAllianceHelp" value="20" min="0" max="50" inputmode="numeric"></div>
+  </div>
+  <button class="btn-lg btn-primary" onclick="calculateHealing()" style="margin-top:12px;">🏥 احسب الشفاء</button>
+  <div id="healResults"></div>
+</div>
+
+<div class="card">
+  <h2>📋 المعلومات المرجعية</h2>
+  <div style="font-size:.82rem;line-height:1.8;">
+    <div style="font-weight:700;color:var(--primary);margin-bottom:8px;">🛡️ معادلة الدفاع (مُثبتة)</div>
+    <div style="padding:10px;background:var(--bg-body);border-radius:10px;font-family:monospace;text-align:center;margin-bottom:12px;direction:ltr;font-size:.8rem;">Damage = ATK × 4000 / (DEF + 4000)</div>
+    <div style="font-weight:700;color:var(--primary);margin-bottom:8px;">❤️ الصحة الفعلية</div>
+    <div style="padding:10px;background:var(--bg-body);border-radius:10px;font-family:monospace;text-align:center;margin-bottom:12px;direction:ltr;font-size:.8rem;">EHP = HP × (DEF + 4000) / 4000</div>
+    <div style="font-weight:700;color:var(--primary);margin-bottom:8px;">⚔️ أفضلية النوع</div>
+    <div style="padding:10px;background:var(--bg-body);border-radius:10px;margin-bottom:12px;">
+      🟫 دبابة → 🚀 صاروخ → ✈️ طائرة → 🟫 دبابة<br>
+      <span style="color:var(--success);">+20% ضرر</span> ضد النوع الأضعف | <span style="color:var(--danger);">-20%</span> ضد الأقوى
+    </div>
+    <div style="font-weight:700;color:var(--primary);margin-bottom:8px;">👥 بونص التشكيلة</div>
+    <div style="padding:10px;background:var(--bg-body);border-radius:10px;">3 نفس النوع = +5% | 3+2 = +10% | 4 = +15% | 5 = +20%</div>
+  </div>
+</div>
+```
+
+  </div><!-- /tools -->
+
+  <!-- ══════════ SAVED TAB ══════════ -->
+
+  <div id="saved" class="tab-content">
+    <div class="card">
+      <h2>💾 السجلات المحفوظة</h2>
+      <div id="savedList"></div>
+    </div>
+  </div><!-- /saved -->
+
+  <!-- ══════════ CHARTS TAB ══════════ -->
+
+  <div id="charts" class="tab-content">
+    <div class="card">
+      <h2>📊 مقارنة المهارات</h2>
+      <div class="chart-wrapper"><canvas id="skillChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>📈 منحنى الترقيات</h2>
+      <div class="chart-wrapper"><canvas id="upgradeChart"></canvas></div>
+    </div>
+  </div><!-- /charts -->
+
+</div><!-- /container -->
+
+<!-- Footer outside container -->
+
+<div class="footer">
+  <img src="https://i.pinimg.com/736x/d0/f6/36/d0f636b1d0308c95b4ffcc75c3df88bc.jpg" alt="Jiraiya" class="footer-avatar">
+  <h3>Distopǐa - 1930</h3>
+  <p>🎮 Master Tactician</p>
+  <p>⚔️ Last War: Survival Game</p>
+  <p style="margin-top:10px;opacity:.7;">"القوة الحقيقية تأتي من التخطيط والاستراتيجية"</p>
+</div>
 
 <script>
-/* ─── DATA & CONSTANTS ─── */
-const STAR_MULT = [0.30, 0.70, 1.20, 1.85, 2.70];
-const SKILL_MULT = [1.0, 3.45, 4.05];
-const TYPE_ADV = { tank: 'missile', missile: 'plane', plane: 'tank' };
-const NAMES = { tank: '🟫 دبابة', plane: '✈️ طائرة', missile: '🚀 صاروخ' };
-const HEROES_DB = [
-  {id:'kim', name:'Kimberly', ar:'كيمبرلي', type:'tank', rar:'UR', role:'atk', img:'https://www.lastwargame.online/wp-content/uploads/2026/01/kimberly_icon.webp'},
-  {id:'dva', name:'DVA', ar:'ديفا', type:'plane', rar:'UR', role:'atk', img:'https://www.lastwargame.online/wp-content/uploads/2026/01/dva_icon.webp'},
-  {id:'fio', name:'Fiona', ar:'فيونا', type:'missile', rar:'UR', role:'atk', img:'https://www.lastwargame.online/wp-content/uploads/2026/01/fiona_icon.webp'},
-  {id:'ste', name:'Stetmann', ar:'ستيتمان', type:'tank', rar:'UR', role:'sup', img:'https://www.lastwargame.online/wp-content/uploads/2026/01/stetmann_icon.webp'},
-  {id:'wil', name:'Williams', ar:'ويليامز', type:'tank', rar:'UR', role:'def', img:'https://www.lastwargame.online/wp-content/uploads/2026/01/williams_icon.webp'},
-  {id:'mar', name:'Marshall', ar:'مارشال', type:'tank', rar:'UR', role:'sup', img:'https://www.lastwargame.online/wp-content/uploads/2026/01/marshall_icon.webp'},
-  {id:'tes', name:'Tesla', ar:'تيسلا', type:'missile', rar:'UR', role:'atk', img:'https://www.lastwargame.online/wp-content/uploads/2026/01/tesla_icon.webp'},
-  {id:'luc', name:'Lucius', ar:'لوسيوس', type:'plane', rar:'UR', role:'def', img:'https://www.lastwargame.online/wp-content/uploads/2026/01/lucius_icon.webp'},
-  {id:'mur', name:'Murphy', ar:'ميرفي', type:'tank', rar:'UR', role:'def', img:'https://www.lastwargame.online/wp-content/uploads/2026/01/merfi.webp'},
-  {id:'sch', name:'Schuyler', ar:'شويلر', type:'plane', rar:'UR', role:'atk', img:'https://www.lastwargame.online/wp-content/uploads/2026/01/schuyler_icon.webp'},
-  {id:'mas', name:'Mason', ar:'ميسون', type:'tank', rar:'UR', role:'atk', img:''},
-  {id:'vio', name:'Violet', ar:'فيوليت', type:'tank', rar:'UR', role:'def', img:''},
-  {id:'ada', name:'Adam', ar:'آدم', type:'missile', rar:'UR', role:'def', img:''}
+/* ═══════════════════════════════════════════
+   حاسبة الحرب الأخيرة Pro Max - v5.2
+   Built by Distopǐa
+   ═══════════════════════════════════════════ */
+
+const STAR_BONUS=[.30,.70,1.20,1.85,2.70];
+const SKILL_MULTIPLIER=[1.0,3.45,4.05];
+const SKILL_NAMES=['عادية ⚔️','خاصة 🔥','نهائية 💥'];
+const TYPE_NAMES={tank:'🟫 دبابة',plane:'✈️ طائرة',missile:'🚀 صاروخ'};
+const TYPE_ADVANTAGE={tank:'missile',missile:'plane',plane:'tank'};
+const LINEUP_BONUS=[0,.05,.10,.15,.20];
+const DEF_CONSTANT=4000;
+const SHARD_COSTS=[25,50,100,300,500];
+
+const HERO_EXP=[
+  0,100,200,300,400,500,600,700,800,900,
+  1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,
+  2000,2200,2300,2700,3200,3900,4600,5500,6600,8000,
+  9500,12000,14000,17000,20000,24000,29000,35000,41000,49000,
+  59000,71000,85000,110000,130000,150000,180000,220000,260000,310000,
+  370000,440000,530000,630000,760000,910000,1100000,1400000,1600000,1900000,
+  2100000,2300000,2500000,2800000,3100000,3400000,3700000,4100000,4500000,4900000,
+  5400000,5900000,6500000,7200000,7900000,8700000,9500000,11000000,12000000,13000000,
+  13000000,14000000,14000000,15000000,16000000,17000000,17000000,
+  18000000,19000000,20000000,21000000,22000000,24000000,26000000,28000000,30000000,32000000,35000000,38000000,41000000,
+  44000000,47000000,50000000,54000000,58000000,62000000,66000000,70000000,75000000,80000000,
+  85000000,90000000,95000000,100000000,105000000,110000000,116000000,122000000,128000000,135000000,
+  142000000,149000000,157000000,165000000,173000000,181000000,190000000,199000000,208000000,218000000,
+  228000000,239000000,250000000,261000000,273000000,285000000,298000000,311000000,325000000,339000000,
+  354000000,369000000,385000000,401000000,418000000,435000000,453000000,472000000,491000000,511000000,
+  532000000,554000000,576000000,599000000,623000000,648000000,674000000,700000000,728000000,756000000,
+  786000000,816000000,848000000,881000000,916000000,952000000,989000000,1028000000,1068000000,1110000000,
+  1154000000,1200000000,1247000000,1296000000,1348000000
 ];
 
-/* ─── STATE ─── */
-let state = { star:0, skill:0, team:Array(5).fill(null) };
+const HQ_CAPS={5:1,10:2,15:3,20:4,25:5,30:6,35:7,40:8,45:9,50:10,55:11,60:12,65:13,70:14,75:15,80:16,85:17,90:18,95:19,100:20,105:21,110:22,115:23,120:24,125:25,130:26,135:27,140:28,145:29,150:30,155:31,160:32,165:33,170:34,175:35};
 
-/* ─── UTILS ─── */
-const parseK = (v) => {
-  if(!v) return 0;
-  v = v.toString().toUpperCase().replace(/,/g,'');
-  let m = v.match(/^([\d.]+)([KMBT]?)$/);
-  if(!m) return parseFloat(v)||0;
-  let n = parseFloat(m[1]);
-  switch(m[2]){ case 'K':n*=1e3;break; case 'M':n*=1e6;break; case 'B':n*=1e9;break; }
-  return Math.round(n);
+const MEDAL_COSTS_UR=[0,200,400,600,800,1000,1400,1800,2200,2600,3200,3800,4400,5000,5800,6600,7600,8600,9800,11000,12400,13800,15400,17200,19000,21000,23200,25600,28200,26000,28000,30000,32000,34000,36000,38000,40000,42000,44000];
+const MEDAL_RATIO={UR:1.0,SSR:0.9,SR:0.74};
+
+const TIER_LIST={'SS':['Fiona'],'S':['Kimberly','DVA','Tesla','Williams','Marshall','Stetmann'],'A':['Murphy','Carlie','Schuyler','Lucius','Morrison','McGregor'],'B':['Adam','Swift','Mason','Violet','Scarlett'],'C':['Jackson','Emma','Lily','Noah','Sophia','Ethan','Ava','Lucas','Isabella'],'D':[]};
+const TIER_COLORS={'SS':'#ff4444','S':'#ff8800','A':'#44bb44','B':'#4488ff','C':'#aa77cc','D':'#888888'};
+
+const META_TEAMS=[
+  {name:'🟫 فريق الدبابات الميتا',heroes:['Williams','Murphy','Kimberly','Tesla','Stetmann'],desc:'أقوى تشكيلة دفاعية — Williams للحماية + Kimberly/Tesla للضرر'},
+  {name:'✈️ فريق الطائرات الميتا',heroes:['Carlie','Lucius','Schuyler','DVA','Morrison'],desc:'أقوى ضرر انفجاري — DVA/Schuyler للـ burst + Carlie/Lucius للحماية'},
+  {name:'🚀 فريق الصواريخ الميتا',heroes:['Fiona','Tesla','Adam','McGregor','Swift'],desc:'أقوى ضرر مساحي — Fiona SS-tier nuker + Tesla للطاقة'},
+];
+
+const IMG_BASE='https://www.lastwargame.online/wp-content/uploads/2026/01/';
+const HEROES=[
+  {name:'Fiona',nameAr:'فيونا',title:'Lion Cub',type:'missile',role:'attack',rarity:'UR',dmg:'physical',desc:'AoE متعدد الأهداف — SS-tier nuker',img:IMG_BASE+'fiona_icon.webp'},
+  {name:'Kimberly',nameAr:'كيمبرلي',title:'Rocket Shadow',type:'tank',role:'attack',rarity:'UR',dmg:'energy',desc:'AoE عالي الضرر — S-tier',img:IMG_BASE+'kimberly_icon.webp'},
+  {name:'DVA',nameAr:'ديفا',title:'Sky Reaver',type:'plane',role:'attack',rarity:'UR',dmg:'energy',desc:'ضرر انفجاري + سرعة هجوم — S-tier',img:IMG_BASE+'dva_icon.webp'},
+  {name:'Tesla',nameAr:'تيسلا',title:'Magnetic Expert',type:'missile',role:'attack',rarity:'UR',dmg:'energy',desc:'ضرر طاقة + حرجات عالية — S-tier',img:IMG_BASE+'tesla_icon.webp'},
+  {name:'Williams',nameAr:'ويليامز',title:'Storm Hunter',type:'tank',role:'defense',rarity:'UR',dmg:'physical',desc:'تقليل ضرر الفريق — S-tier',img:IMG_BASE+'williams_icon.webp'},
+  {name:'Marshall',nameAr:'مارشال',title:'Blade of Legion',type:'tank',role:'support',rarity:'UR',dmg:'energy',desc:'دعم شامل + تعزيز هجوم — S-tier',img:IMG_BASE+'marshall_icon.webp'},
+  {name:'Stetmann',nameAr:'ستيتمان',title:'EM Hunter',type:'tank',role:'attack',rarity:'UR',dmg:'energy',desc:'ضرر كهربائي مستمر — S-tier',img:IMG_BASE+'stetmann_icon.webp'},
+  {name:'Murphy',nameAr:'ميرفي',title:'Unyielding Warrior',type:'tank',role:'defense',rarity:'UR',dmg:'physical',desc:'دبابة دفاعية قوية — A-tier',img:IMG_BASE+'merfi.webp'},
+  {name:'Carlie',nameAr:'كارلي',title:'Scamp',type:'plane',role:'defense',rarity:'UR',dmg:'physical',desc:'تقليل ضرر الطاقة — A-tier',img:IMG_BASE+'carlie_icon.webp'},
+  {name:'Schuyler',nameAr:'شويلر',title:'Magblade',type:'plane',role:'attack',rarity:'UR',dmg:'energy',desc:'صعق + شلل + AoE — A-tier',img:IMG_BASE+'schuyler_icon.webp'},
+  {name:'Lucius',nameAr:'لوسيوس',title:'Sky Knight',type:'plane',role:'defense',rarity:'UR',dmg:'physical',desc:'تقليل ضرر الصف الأمامي — A-tier',img:IMG_BASE+'lucius_icon.webp'},
+  {name:'Morrison',nameAr:'موريسون',title:'The Reaper',type:'plane',role:'attack',rarity:'UR',dmg:'physical',desc:'ضرر انفجاري + تقليل دفاع — A-tier',img:IMG_BASE+'morrison_icon.webp'},
+  {name:'McGregor',nameAr:'ماكغريغور',title:'Ironclad General',type:'missile',role:'defense',rarity:'UR',dmg:'physical',desc:'استفزاز + حماية — A-tier',img:IMG_BASE+'mcgregor_icon.webp'},
+  {name:'Swift',nameAr:'سويفت',title:'Thunder',type:'missile',role:'attack',rarity:'UR',dmg:'physical',desc:'إعدام الأعداء ضعاف HP — B-tier',img:IMG_BASE+'swift_icon.webp'},
+  {name:'Adam',nameAr:'آدم',title:'Titan',type:'missile',role:'defense',rarity:'UR',dmg:'physical',desc:'هجوم مضاد + تقليل ضرر — B-tier',img:IMG_BASE+'adam_icon.webp'},
+  {name:'Mason',nameAr:'ميسون',title:'Zombie Bane',type:'tank',role:'attack',rarity:'UR',dmg:'physical',desc:'AoE + تعزيز ضد الوحوش — B-tier',img:''},
+  {name:'Violet',nameAr:'فيوليت',title:'Frost Guard',type:'tank',role:'defense',rarity:'UR',dmg:'physical',desc:'درع جليد + إضعاف — B-tier',img:''},
+  {name:'Scarlett',nameAr:'سكارليت',title:'Iron Rose',type:'tank',role:'defense',rarity:'UR',dmg:'physical',desc:'تقليل ضرر + زيادة دفاع — B-tier',img:''},
+  {name:'Helena',nameAr:'هيلينا',title:'Healer',type:'tank',role:'support',rarity:'SSR',dmg:'energy',desc:'دعم + شفاء',img:''},
+  {name:'Marcus',nameAr:'ماركوس',title:'Warlord',type:'missile',role:'attack',rarity:'SSR',dmg:'physical',desc:'ضرر مساحي قوي',img:''},
+  {name:'Monica',nameAr:'مونيكا',title:'Supplier',type:'tank',role:'support',rarity:'SSR',dmg:'energy',desc:'تعزيز موارد + ضرر زومبي',img:''},
+  {name:'Ambolt',nameAr:'أمبولت',title:'Medic',type:'plane',role:'support',rarity:'SSR',dmg:'energy',desc:'شفاء أساسي',img:''},
+  {name:'Cage',nameAr:'كيج',title:'Shield',type:'plane',role:'defense',rarity:'SSR',dmg:'physical',desc:'تعزيز دفاع الأمام',img:''},
+  {name:'Drake',nameAr:'دريك',title:'Fortress',type:'tank',role:'defense',rarity:'SSR',dmg:'physical',desc:'دبابة متوسطة',img:''},
+  {name:'Kane',nameAr:'كين',title:'Sniper',type:'missile',role:'attack',rarity:'SSR',dmg:'physical',desc:'ضرر هدف واحد',img:''},
+  {name:'Maxwell',nameAr:'ماكسويل',title:'Shock',type:'plane',role:'attack',rarity:'SSR',dmg:'physical',desc:'ضرر فيزيائي + صعق',img:''},
+  {name:'Richard',nameAr:'ريتشارد',title:'Vanguard',type:'tank',role:'attack',rarity:'SSR',dmg:'physical',desc:'ضرر متعدد أهداف',img:''},
+  {name:'Sarah',nameAr:'سارة',title:'Hunter',type:'plane',role:'support',rarity:'SSR',dmg:'energy',desc:'تعزيز ضرر وحوش',img:''},
+  {name:'Venom',nameAr:'فينوم',title:'Toxin',type:'missile',role:'attack',rarity:'SSR',dmg:'energy',desc:'ضرر سم مستمر',img:''},
+  {name:'Farhad',nameAr:'فرهاد',title:'Recruit',type:'tank',role:'attack',rarity:'SR',dmg:'physical',desc:'مهاجم أساسي',img:''},
+  {name:'Elsa',nameAr:'إلسا',title:'Frost',type:'tank',role:'defense',rarity:'SR',dmg:'energy',desc:'إبطاء + تقليل ضرر',img:''},
+  {name:'Blaz',nameAr:'بلاز',title:'Flame',type:'missile',role:'attack',rarity:'SR',dmg:'physical',desc:'فعال ضد الزومبي فقط',img:''},
+  {name:'Gump',nameAr:'غامب',title:'Blaze',type:'tank',role:'attack',rarity:'SR',dmg:'physical',desc:'هجوم ناري',img:''},
+  {name:'Loki',nameAr:'لوكي',title:'Guard',type:'tank',role:'defense',rarity:'SR',dmg:'physical',desc:'دفاع أساسي',img:''},
+  {name:'Jackson',nameAr:'جاكسون',title:'Cadet',type:'tank',role:'defense',rarity:'SR',dmg:'physical',desc:'دبابة مبتدئة جيدة',img:''},
+  {name:'Noah',nameAr:'نوح',title:'Salvager',type:'tank',role:'defense',rarity:'SR',dmg:'physical',desc:'دبابة تعديلات مرتجلة',img:''},
+  {name:'Lucas',nameAr:'لوكاس',title:'Reserve',type:'tank',role:'defense',rarity:'SR',dmg:'physical',desc:'مشغل دبابة احتياطي',img:''},
+  {name:'Emma',nameAr:'إيما',title:'Researcher',type:'missile',role:'attack',rarity:'SR',dmg:'energy',desc:'صاروخ بحث أساسي',img:''},
+  {name:'Ethan',nameAr:'إيثان',title:'Militia',type:'missile',role:'attack',rarity:'SR',dmg:'physical',desc:'تدريب صاروخي أساسي',img:''},
+  {name:'Isabella',nameAr:'إيزابيلا',title:'Trainee',type:'missile',role:'attack',rarity:'SR',dmg:'physical',desc:'متدربة مدفعية',img:''},
+  {name:'Lily',nameAr:'ليلي',title:'Pilot',type:'plane',role:'attack',rarity:'SR',dmg:'physical',desc:'طيارة متدربة',img:''},
+  {name:'Sophia',nameAr:'صوفيا',title:'Medivac',type:'plane',role:'support',rarity:'SR',dmg:'energy',desc:'دعم طبي جوي',img:''},
+  {name:'Ava',nameAr:'آفا',title:'Scout',type:'plane',role:'attack',rarity:'SR',dmg:'physical',desc:'طائرة استطلاع',img:''},
+];
+
+const ROLE_NAMES={attack:'⚔️ مهاجم',defense:'🛡️ مدافع',support:'💊 دعم'};
+const RARITY_COLORS={UR:'#f6ad55',SSR:'#b794f4',SR:'#63b3ed'};
+const DMG_ICONS={physical:'💥',energy:'⚡'};
+const SKILL_TYPES={auto:{icon:'🎯',name:'هجمة تلقائية',color:'#e53e3e'},tactics:{icon:'💡',name:'تكتيكية',color:'#3182ce'},passive:{icon:'🔮',name:'سلبية',color:'#38a169'},expertise:{icon:'👑',name:'خبرة',color:'#d69e2e'}};
+const HERO_SKILLS={
+  'Fiona':{auto:{name:'Double Trajectory',nameAr:'مسار مزدوج',desc:'إطلاق صاروخ مضاد للطائرات — ضرر فيزيائي'},tactics:{name:'Atomic Blast',nameAr:'انفجار ذري',desc:'صاروخ يضرب جميع الأعداء'},passive:{name:'Ballistic Boost',nameAr:'تعزيز باليستي',desc:'يزيد الضرر الفيزيائي'},expertise:{name:'Super Sensing',nameAr:'حاسة خارقة',desc:'HP/هجوم/دفاع +20%، تبريد +10%'}},
+  'Kimberly':{auto:{name:'Energy Assault',nameAr:'هجوم طاقة',desc:'صاروخ على عدو عشوائي — طاقة'},tactics:{name:'Barrage Strike',nameAr:'ضربة وابلية',desc:'8 صواريخ على أعداء عشوائيين'},passive:{name:'Energy Boost',nameAr:'تعزيز الطاقة',desc:'يزيد ضرر الطاقة'},expertise:{name:'Super Sensing',nameAr:'حاسة خارقة',desc:'HP/هجوم/دفاع +20%، تبريد +10%'}},
+  'DVA':{auto:{name:'Vortex Missile',nameAr:'صاروخ دوامي',desc:'صاروخ طاقة (تبريد: 1.35ث)'},tactics:{name:'Steel Barrage',nameAr:'وابل فولاذي',desc:'هجوم على جميع الأعداء'},passive:{name:'Precision Upgrade',nameAr:'ترقية الدقة',desc:'يزيد معدل الحرجات'},expertise:{name:'Super Sensing',nameAr:'حاسة خارقة',desc:'HP/هجوم/دفاع +20%، تبريد +10%'}},
+  'Tesla':{auto:{name:'Lightning Chain',nameAr:'سلسلة برق',desc:'أقواس طاقة كهربائية'},tactics:{name:'Electric Grid Lockdown',nameAr:'إغلاق شبكة كهربائية',desc:'هجوم على 3 وحدات خلفية'},passive:{name:'Electric Power Boost',nameAr:'تعزيز القوة الكهربائية',desc:'يزيد ضرر الطاقة'},expertise:{name:'Super Sensing',nameAr:'حاسة خارقة',desc:'HP/هجوم/دفاع +20%، تبريد +10%'}},
+  'Williams':{auto:{name:'Stun Bomb',nameAr:'قنبلة صاعقة',desc:'قنبلة صاعقة انفجارية'},tactics:{name:'Iron Will',nameAr:'إرادة حديدية',desc:'تعزيز دفاع أول وحدتين 10 ثواني'},passive:{name:'All-Around Armor',nameAr:'درع شامل',desc:'تقليل جميع الأضرار الواردة'},expertise:{name:'Super Sensing',nameAr:'حاسة خارقة',desc:'HP/هجوم/دفاع +20%، تبريد +10%'}},
+  'Marshall':{auto:{name:'Triad Harmony',nameAr:'انسجام ثلاثي',desc:'رشاش مثبت — ضرر خارق'},tactics:{name:'Command Strategy',nameAr:'استراتيجية قيادة',desc:'يزيد هجوم الفريق 6 ثواني'},passive:{name:'Rapid Start',nameAr:'بداية سريعة',desc:'يزيد سرعة التبريد + تقليل ضرر'},expertise:{name:'Super Sensing',nameAr:'حاسة خارقة',desc:'HP/هجوم/دفاع +20%، تبريد +10%'}},
+  'Murphy':{auto:{name:'Cannon Fire',nameAr:'نيران المدفع',desc:'قذيفة مدفع — ضرر فيزيائي'},tactics:{name:'Ironclad Barrier',nameAr:'حاجز حديدي',desc:'تعزيز تقليل الضرر الأمامي 5 ثواني'},passive:{name:'Stand Firm',nameAr:'صمود',desc:'تقليل أضرار الصف الأمامي'},expertise:{name:'Super Sensing',nameAr:'حاسة خارقة',desc:'HP/هجوم/دفاع +20%، تبريد +10%'}},
+  'Adam':{auto:{name:'MK43 Machine Gun',nameAr:'رشاش MK43',desc:'ضرر فيزيائي لعدو واحد'},tactics:{name:'Counter Defense',nameAr:'دفاع مضاد',desc:'وضع دفاع مضاد 5 ثواني'},passive:{name:'Spike Armor',nameAr:'درع شوكي',desc:'تقليل ضرر الأمام'},expertise:{name:'Super Sensing',nameAr:'حاسة خارقة',desc:'HP/هجوم/دفاع +20%، تبريد +10%'}},
 };
-const fmt = (n) => n > 1e6 ? (n/1e6).toFixed(2)+'M' : n > 1e3 ? (n/1e3).toFixed(1)+'K' : n.toLocaleString();
 
-/* ─── INIT ─── */
-window.onload = () => {
-  renderStars();
-  renderHeroes();
-  renderTeam();
-  updateCalc();
-};
+// ── State ──
+let selectedStars=0,selectedSkill=0,selectedLineup=1,selectedMedalRarity='UR';
+let teamSlots=[],skillChartInstance=null,upgradeChartInstance=null;
 
-/* ─── LOGIC: UI ─── */
+// ── Utilities ──
+function parseValue(str){
+  if(!str)return 0;
+  str=String(str).trim().toUpperCase().replace(/,/g,'').replace(/\s/g,'');
+  const m=str.match(/^([\d.]+)\s*([KMBT]?)$/i);
+  if(m){const n=parseFloat(m[1]),s=m[2].toUpperCase();return s?n*({K:1e3,M:1e6,B:1e9,T:1e12}[s]||1):n;}
+  return parseFloat(str)||0;
+}
+function formatNumber(n){
+  if(n>=1e9)return(n/1e9).toFixed(2)+'B';
+  if(n>=1e6)return(n/1e6).toFixed(2)+'M';
+  if(n>=1e3)return n.toLocaleString('en-US');
+  return Math.round(n).toLocaleString('en-US');
+}
+
+// ── Tab Switch ──
+function switchTab(tabId){
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  const el=document.getElementById(tabId);
+  if(el)el.classList.add('active');
+  const map=['calculator','compare','heroes','tierlist','teambuilder','tools','saved','charts'];
+  const idx=map.indexOf(tabId);
+  if(idx>=0)document.querySelectorAll('.tab')[idx].classList.add('active');
+  if(tabId==='saved')loadSavedList();
+  if(tabId==='charts')initCharts();
+  if(tabId==='heroes')renderHeroes();
+  if(tabId==='tierlist')renderTierList();
+  if(tabId==='teambuilder'){renderTeamBuilderList();renderTeamSlots();renderMetaTeams();}
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── Theme ──
 function toggleTheme(){
-  let b = document.body;
-  b.setAttribute('data-theme', b.getAttribute('data-theme')==='dark'?'light':'dark');
+  const dark=document.body.getAttribute('data-theme')==='dark';
+  document.body.setAttribute('data-theme',dark?'':'dark');
+  document.querySelector('.theme-toggle').textContent=dark?'🌙':'☀️';
+  localStorage.setItem('theme',dark?'light':'dark');
+}
+(function(){
+  if(localStorage.getItem('theme')==='dark'){
+    document.body.setAttribute('data-theme','dark');
+    document.querySelector('.theme-toggle').textContent='☀️';
+  }
+})();
+
+// ── Selections ──
+function selectStars(i,el){selectedStars=i;el.closest('.grid-select').querySelectorAll('.select-item').forEach(x=>x.classList.remove('selected'));el.classList.add('selected');updatePreview();}
+function selectSkill(i,el){selectedSkill=i;el.closest('.grid-select').querySelectorAll('.select-item').forEach(x=>x.classList.remove('selected'));el.classList.add('selected');updatePreview();}
+function selectLineup(i,el){selectedLineup=i;document.querySelectorAll('#calculator .card:nth-child(3) .select-item').forEach(x=>x.classList.remove('selected'));el.classList.add('selected');updatePreview();}
+
+// ── Preview Update ──
+function updatePreview(){
+  const atk=parseValue(document.getElementById('attack').value);
+  const hp=parseValue(document.getElementById('health').value);
+  const cc=parseFloat(document.getElementById('critChance').value)||0;
+  const cd=parseFloat(document.getElementById('critDamage').value)||0;
+  const mo=parseFloat(document.getElementById('morale').value)||100;
+  document.getElementById('attackValue').textContent=formatNumber(atk);
+  document.getElementById('healthValue').textContent=formatNumber(hp);
+  document.getElementById('critFreq').textContent=cc>0?Math.round(100/cc):'∞';
+  document.getElementById('critMulti').textContent='×'+(cd/100).toFixed(1);
+  document.getElementById('moraleMulti').textContent='×'+(mo/100).toFixed(2);
+  const at=document.getElementById('attackerType').value;
+  const dt=document.getElementById('defenderType').value;
+  const prev=document.getElementById('typeAdvantagePreview');
+  if(TYPE_ADVANTAGE[at]===dt)prev.innerHTML='<div class="type-badge advantage">✅ أفضلية نوع! +20% ضرر</div>';
+  else if(TYPE_ADVANTAGE[dt]===at)prev.innerHTML='<div class="type-badge disadvantage">❌ عيب نوع! -20% ضرر</div>';
+  else prev.innerHTML='<div class="type-badge neutral">⚖️ تعادل في النوع</div>';
 }
 
-function switchTab(id, el){
-  document.querySelectorAll('.tab-pane').forEach(d => d.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  el.classList.add('active');
-  el.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
+function getTypeMultiplier(a,d){
+  if(TYPE_ADVANTAGE[a]===d)return 1.20;
+  if(TYPE_ADVANTAGE[d]===a)return 0.80;
+  return 1.0;
 }
 
-function renderStars(){
-  let h = '';
-  ['⭐','⭐⭐','⭐⭐⭐','4⭐','5⭐'].forEach((s,i) => {
-    h += `<div class="select-opt ${i===0?'active':''}" onclick="setStar(${i}, this)"><span>${s}</span><small>+${Math.round(STAR_MULT[i]*100)}%</small></div>`;
-  });
-  document.getElementById('star_grid').innerHTML = h;
+function calculateDamage(atk,def,stars,skill,at,dt,res,cc,cd,lineup,morale){
+  const defRed=DEF_CONSTANT/(def+DEF_CONSTANT);
+  const base=atk*defRed;
+  const sB=1+STAR_BONUS[stars];
+  const sM=SKILL_MULTIPLIER[skill];
+  const tM=getTypeMultiplier(at,dt);
+  const rM=1-(res/100);
+  const lM=1+LINEUP_BONUS[lineup||0];
+  const moM=(morale||100)/100;
+  const norm=base*sB*sM*tM*rM*lM*moM;
+  const cM=cd/100;
+  const crit=norm*cM;
+  const avg=norm*(1+(cc/100)*(cM-1));
+  return{normal:Math.round(norm),critical:Math.round(crit),average:Math.round(avg),baseDmg:Math.round(base),defReduction:defRed,starBonus:sB,skillMult:sM,typeMult:tM,resistMult:rM,lineupMult:lM,moraleMult:moM};
 }
 
-function setStar(i, el){
-  state.star = i;
-  setActive(el);
-  updateCalc();
-}
-function setSkill(i, el){
-  state.skill = i;
-  setActive(el);
-  updateCalc();
-}
-function setActive(el){
-  el.parentElement.querySelectorAll('.select-opt').forEach(e=>e.classList.remove('active'));
-  el.classList.add('active');
-}
+// ── Simulate Battle ──
+function simulateBattle(){
+  const atk=parseValue(document.getElementById('attack').value);
+  const hp=parseValue(document.getElementById('health').value);
+  const def=parseValue(document.getElementById('defense').value);
+  const res=parseFloat(document.getElementById('resistance').value)||0;
+  const cc=parseFloat(document.getElementById('critChance').value)||0;
+  const cd=parseFloat(document.getElementById('critDamage').value)||150;
+  const mo=parseFloat(document.getElementById('morale').value)||100;
+  const at=document.getElementById('attackerType').value;
+  const dt=document.getElementById('defenderType').value;
+  const ehp=hp*(def+DEF_CONSTANT)/DEF_CONSTANT;
+  const dmg=calculateDamage(atk,def,selectedStars,selectedSkill,at,dt,res,cc,cd,selectedLineup,mo);
+  const hitsAvg=Math.ceil(hp/dmg.average);
 
-/* ─── LOGIC: CALC ─── */
-function updateCalc(){
-  let atk = parseK(document.getElementById('at_val').value);
-  let hp = parseK(document.getElementById('hp_val').value);
-  document.getElementById('at_display').innerText = fmt(atk);
-  document.getElementById('hp_display').innerText = fmt(hp);
-  
-  // Type Check
-  let t1 = document.getElementById('at_type').value;
-  let t2 = document.getElementById('def_type').value;
-  let badge = document.getElementById('type_badge');
-  
-  if(TYPE_ADV[t1] === t2) badge.innerHTML = '<span class="tag green">✅ أفضلية نوع (+20%)</span>';
-  else if(TYPE_ADV[t2] === t1) badge.innerHTML = '<span class="tag red">❌ عيب نوع (-20%)</span>';
-  else badge.innerHTML = '<span class="tag" style="background:var(--border)">⚖️ متعادل</span>';
-}
+  let remHP=hp,rounds=[];
+  for(let r=1;r<=100&&remHP>0;r++){
+    const isCrit=Math.random()*100<cc;
+    const hit=isCrit?dmg.critical:dmg.normal;
+    remHP=Math.max(0,remHP-hit);
+    rounds.push({round:r,damage:hit,isCrit,remainingHP:remHP});
+  }
 
-function simulate(){
-  let atk = parseK(document.getElementById('at_val').value);
-  let def = parseK(document.getElementById('def_val').value);
-  let hp = parseK(document.getElementById('hp_val').value);
-  
-  // Multipliers
-  let starB = 1 + STAR_MULT[state.star];
-  let skillB = SKILL_MULT[state.skill];
-  let typeB = 1.0;
-  
-  let t1 = document.getElementById('at_type').value;
-  let t2 = document.getElementById('def_type').value;
-  if(TYPE_ADV[t1] === t2) typeB = 1.2;
-  if(TYPE_ADV[t2] === t1) typeB = 0.8;
-  
-  // Formula approximation
-  let dmgBase = atk * starB * skillB * typeB;
-  let mitigation = 4000 / (def + 4000);
-  let dmgFinal = Math.round(dmgBase * mitigation);
-  let hits = Math.ceil(hp / dmgFinal);
-  
-  let html = `
-    <div class="card" style="border-color:var(--primary); background:rgba(99,102,241,0.05)">
-      <div class="stats-row">
-        <div class="stat-item"><div class="stat-val">${fmt(dmgFinal)}</div><div class="stat-lbl">ضرر الضربة</div></div>
-        <div class="stat-item"><div class="stat-val text-grad">${hits}</div><div class="stat-lbl">ضربات للقتل</div></div>
+  let typeInfo='';
+  if(dmg.typeMult>1)typeInfo=`<div class="type-badge advantage">✅ أفضلية نوع! ×${dmg.typeMult.toFixed(2)}</div>`;
+  else if(dmg.typeMult<1)typeInfo=`<div class="type-badge disadvantage">❌ عيب نوع! ×${dmg.typeMult.toFixed(2)}</div>`;
+  else typeInfo='<div class="type-badge neutral">⚖️ تعادل نوع ×1.00</div>';
+
+  const html=`
+  <div class="card" id="resultCard">
+    <h2>📊 نتائج المحاكاة</h2>
+    <div style="text-align:center;margin-bottom:12px;">
+      <span style="font-size:1.1rem;">${TYPE_NAMES[at]}</span>
+      <span style="margin:0 8px;font-weight:800;color:var(--primary);">⚔️</span>
+      <span style="font-size:1.1rem;">${TYPE_NAMES[dt]}</span>
+    </div>
+    <div style="text-align:center;">${typeInfo}</div>
+    <div class="stats-grid" style="margin-top:16px;">
+      <div class="stat-box"><div class="stat-val" style="color:var(--danger);">${formatNumber(dmg.normal)}</div><div class="stat-lbl">ضرر عادي</div></div>
+      <div class="stat-box"><div class="stat-val" style="color:var(--warning);">${formatNumber(dmg.critical)}</div><div class="stat-lbl">ضرر حرج 💥</div></div>
+      <div class="stat-box"><div class="stat-val" style="color:var(--info);">${formatNumber(dmg.average)}</div><div class="stat-lbl">متوسط الضرر</div></div>
+      <div class="stat-box"><div class="stat-val" style="color:var(--success);">${hitsAvg}</div><div class="stat-lbl">ضربات للقتل</div></div>
+    </div>
+    <div style="margin-top:12px;padding:13px;background:linear-gradient(135deg,rgba(72,187,120,.08),rgba(66,153,225,.08));border-radius:14px;border:1px solid var(--border);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span style="font-weight:700;color:var(--primary);">🛡️ Effective HP</span>
+        <strong style="font-size:1.1rem;color:var(--success);">${formatNumber(ehp)}</strong>
       </div>
-      <div class="battle-res" style="max-height:150px; overflow-y:auto; padding:10px;">
-        <div class="log-item"><span>القوة الأساسية</span><strong>${fmt(atk)}</strong></div>
-        <div class="log-item"><span>بعد البونص</span><strong>${fmt(atk*starB)}</strong></div>
-        <div class="log-item"><span>تخفيض الدفاع</span><strong>${(mitigation*100).toFixed(1)}%</strong></div>
+      <div style="font-size:.72rem;color:var(--text-sub);">HP الفعلي بعد احتساب الدفاع = HP × (DEF+4000)/4000</div>
+    </div>
+    <div style="margin-top:16px;padding:13px;background:var(--bg-body);border-radius:14px;font-size:.82rem;">
+      <div style="font-weight:700;color:var(--primary);margin-bottom:10px;">📐 تفاصيل المعادلة</div>
+      ${[['الضرر الأساسي',formatNumber(dmg.baseDmg),''],['تخفيض الدفاع',(dmg.defReduction*100).toFixed(1)+'%','var(--info)'],['بونص النجوم ⚠️','×'+dmg.starBonus.toFixed(2),''],['مضاعف المهارة ⚠️','×'+dmg.skillMult.toFixed(2),''],['معامل النوع','×'+dmg.typeMult.toFixed(2),''],['تقليل المقاومة','×'+dmg.resistMult.toFixed(2),''],['بونص التشكيلة','×'+dmg.lineupMult.toFixed(2),'var(--success)'],['الروح المعنوية','×'+dmg.moraleMult.toFixed(2),'']].map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span>${l}</span><strong style="${c?'color:'+c:''}">${v}</strong></div>`).join('')}
+    </div>
+    <h2 style="margin-top:18px;">📜 سجل المعركة</h2>
+    <div class="battle-log">
+      ${rounds.map(r=>`<div class="log-entry ${r.isCrit?'critical':''}">
+        <span>الجولة ${r.round} ${r.isCrit?'💥':'⚔️'}</span>
+        <span style="display:flex;gap:12px;">
+          <span style="color:var(--danger);">-${formatNumber(r.damage)}</span>
+          <span style="color:var(--text-sub);">❤️ ${formatNumber(r.remainingHP)}</span>
+        </span>
+      </div>`).join('')}
+    </div>
+  </div>`;
+
+  const div=document.getElementById('results');
+  div.innerHTML=html;div.style.display='block';
+  setTimeout(()=>div.scrollIntoView({behavior:'smooth',block:'start'}),100);
+}
+
+// ── Compare ──
+function compareUnits(){
+  const t1=document.getElementById('comp1Type').value,a1=parseValue(document.getElementById('comp1Attack').value),s1=parseInt(document.getElementById('comp1Stars').value);
+  const t2=document.getElementById('comp2Type').value,a2=parseValue(document.getElementById('comp2Attack').value),s2=parseInt(document.getElementById('comp2Stars').value);
+  const p1=a1*(1+STAR_BONUS[s1]),p2=a2*(1+STAR_BONUS[s2]);
+  const tm1=getTypeMultiplier(t1,t2),tm2=getTypeMultiplier(t2,t1);
+  const e1=p1*tm1,e2=p2*tm2;
+  const winner=e1>e2?1:e2>e1?2:0;
+  const pct=winner===1?((e1/e2-1)*100).toFixed(1):winner===2?((e2/e1-1)*100).toFixed(1):'0';
+  const winText=winner===0?'⚖️ تعادل تام!':winner===1?`🏆 الوحدة الأولى أقوى بنسبة ${pct}%`:`🏆 الوحدة الثانية أقوى بنسبة ${pct}%`;
+  const wColor=winner===1?'var(--success)':winner===2?'var(--info)':'var(--warning)';
+  function typeTag(m){return m>1?`<span style="color:var(--success)">+20%</span>`:m<1?`<span style="color:var(--danger)">-20%</span>`:`<span style="color:var(--warning)">0%</span>`;}
+  document.getElementById('compareResults').innerHTML=`
+  <div class="card" style="margin-top:16px;">
+    <h2>📊 نتيجة المقارنة</h2>
+    <div style="text-align:center;padding:12px 0;font-size:1.05rem;font-weight:800;color:${wColor};">${winText}</div>
+    <div class="stats-grid">
+      <div class="stat-box" style="border:2px solid ${winner===1?'var(--success)':'var(--border)'};">
+        <div style="margin-bottom:6px;">${TYPE_NAMES[t1]}</div>
+        <div class="stat-val">${formatNumber(p1)}</div><div class="stat-lbl">قوة أساسية</div>
+        <div style="margin-top:8px;font-size:.8rem;">أفضلية: ${typeTag(tm1)}</div>
+        <div class="stat-val" style="font-size:1.05rem;margin-top:5px;color:var(--primary);">${formatNumber(e1)}</div>
+        <div class="stat-lbl">قوة فعلية</div>
+      </div>
+      <div class="stat-box" style="border:2px solid ${winner===2?'var(--success)':'var(--border)'};">
+        <div style="margin-bottom:6px;">${TYPE_NAMES[t2]}</div>
+        <div class="stat-val">${formatNumber(p2)}</div><div class="stat-lbl">قوة أساسية</div>
+        <div style="margin-top:8px;font-size:.8rem;">أفضلية: ${typeTag(tm2)}</div>
+        <div class="stat-val" style="font-size:1.05rem;margin-top:5px;color:var(--primary);">${formatNumber(e2)}</div>
+        <div class="stat-lbl">قوة فعلية</div>
       </div>
     </div>
-  `;
-  document.getElementById('sim_result').innerHTML = html;
-  document.getElementById('sim_result').style.display = 'block';
+    <div style="margin-top:12px;padding:10px;background:var(--bg-body);border-radius:10px;font-size:.82rem;text-align:center;">
+      الفرق: <strong style="color:var(--primary);">${formatNumber(Math.abs(e1-e2))}</strong>
+    </div>
+  </div>`;
 }
 
-/* ─── LOGIC: HEROES ─── */
-function renderHeroes(list = HEROES_DB){
-  const c = document.getElementById('hero_list');
-  const tp = document.getElementById('team_picker');
-  
-  let html = list.map(h => `
-    <div class="hero-card" onclick="alert('بيانات: ${h.name}')">
-      <div class="hero-img-box" style="background:${getColor(h.rar)}">
-        ${h.img ? `<img src="${h.img}" class="hero-img" onerror="this.style.display='none'">` : ''}
-        <div class="hero-badge">${h.rar}</div>
-      </div>
-      <div style="flex:1">
-        <div style="font-weight:800; font-size:0.9rem">${h.ar}</div>
-        <div style="font-size:0.7rem; opacity:0.7">${NAMES[h.type]}</div>
-      </div>
+// ── Save/Load ──
+function saveCalculation(){
+  const name=document.getElementById('calcName').value||'حساب '+new Date().toLocaleString('ar-SA');
+  const data={name,date:new Date().toISOString(),attackerType:document.getElementById('attackerType').value,attack:document.getElementById('attack').value,stars:selectedStars,skill:selectedSkill,critChance:document.getElementById('critChance').value,critDamage:document.getElementById('critDamage').value,defenderType:document.getElementById('defenderType').value,health:document.getElementById('health').value,defense:document.getElementById('defense').value,resistance:document.getElementById('resistance').value};
+  let saves=JSON.parse(localStorage.getItem('lastwar_saves')||'[]');
+  saves.unshift(data);if(saves.length>50)saves=saves.slice(0,50);
+  localStorage.setItem('lastwar_saves',JSON.stringify(saves));
+  const btn=event.target.closest('button'),orig=btn.innerHTML;
+  btn.innerHTML='✅ تم الحفظ!';btn.style.background='linear-gradient(135deg,#48bb78,#38a169)';btn.style.color='#fff';
+  setTimeout(()=>{btn.innerHTML=orig;btn.style.background='';btn.style.color='';},1500);
+}
+function loadSavedList(){
+  const saves=JSON.parse(localStorage.getItem('lastwar_saves')||'[]');
+  const c=document.getElementById('savedList');
+  if(!saves.length){c.innerHTML='<p style="text-align:center;color:var(--text-sub);padding:30px;">لا توجد حسابات محفوظة بعد</p>';return;}
+  c.innerHTML=saves.map((s,i)=>`
+  <div class="saved-item" onclick="loadSave(${i})">
+    <div style="min-width:0;flex:1;">
+      <div style="font-weight:700;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.name}</div>
+      <div style="font-size:.75rem;color:var(--text-sub);">${TYPE_NAMES[s.attackerType]||'?'} vs ${TYPE_NAMES[s.defenderType]||'?'} | ATK: ${s.attack}</div>
     </div>
-  `).join('');
-  c.innerHTML = html;
-  
-  // Team Picker Version
-  let html2 = HEROES_DB.map((h, idx) => `
-    <div class="hero-card" onclick="addToTeam(${idx})">
-      <div class="hero-img-box" style="background:${getColor(h.rar)}">
-        <div style="display:flex; justify-content:center; align-items:center; height:100%; color:white; font-weight:bold;">${h.name[0]}</div>
-      </div>
-      <div style="flex:1">
-        <div style="font-weight:800; font-size:0.85rem">${h.ar}</div>
-      </div>
-      <div style="font-size:1.2rem; color:var(--primary)">+</div>
-    </div>
-  `).join('');
-  tp.innerHTML = html2;
+    <button class="delete-btn" onclick="event.stopPropagation();deleteSave(${i})">🗑️</button>
+  </div>`).join('');
+}
+function loadSave(i){
+  const saves=JSON.parse(localStorage.getItem('lastwar_saves')||'[]'),s=saves[i];
+  if(!s)return;
+  ['attackerType','attack','critChance','critDamage','defenderType','health','defense','resistance','calcName'].forEach(id=>{if(s[id]!==undefined)document.getElementById(id).value=s[id];});
+  selectedStars=s.stars||0;selectedSkill=s.skill||0;
+  updatePreview();switchTab('calculator');
+}
+function deleteSave(i){
+  const saves=JSON.parse(localStorage.getItem('lastwar_saves')||'[]');
+  saves.splice(i,1);localStorage.setItem('lastwar_saves',JSON.stringify(saves));loadSavedList();
 }
 
-function getColor(rar){ return rar==='UR'?'#f59e0b':rar==='SSR'?'#8b5cf6':'#3b82f6'; }
+// ── Screenshot ──
+function shareAsImage(){
+  const rc=document.getElementById('resultCard');
+  if(!rc){simulateBattle();setTimeout(shareAsImage,600);return;}
+  html2canvas(rc,{backgroundColor:document.body.getAttribute('data-theme')==='dark'?'#1e293b':'#ffffff',scale:2,useCORS:true,logging:false}).then(canvas=>{
+    const a=document.createElement('a');a.download='lastwar-'+Date.now()+'.png';a.href=canvas.toDataURL('image/png');a.click();
+  }).catch(()=>alert('❌ حدث خطأ في التصوير'));
+}
 
-function filterType(t){
-  let l = t==='all' ? HEROES_DB : HEROES_DB.filter(x=>x.type===t);
-  renderHeroes(l);
+// ── Charts ──
+function initCharts(){initSkillChart();initUpgradeChart();}
+function initSkillChart(){
+  const ctx=document.getElementById('skillChart').getContext('2d');
+  const atk=parseValue(document.getElementById('attack').value);
+  const def=parseValue(document.getElementById('defense').value);
+  const base=atk*DEF_CONSTANT/(def+DEF_CONSTANT);
+  const sb=1+STAR_BONUS[selectedStars];
+  const dmgs=SKILL_MULTIPLIER.map(m=>Math.round(base*sb*m));
+  if(skillChartInstance)skillChartInstance.destroy();
+  skillChartInstance=new Chart(ctx,{type:'bar',data:{labels:SKILL_NAMES,datasets:[{label:'الضرر',data:dmgs,backgroundColor:['rgba(102,126,234,.7)','rgba(237,137,54,.7)','rgba(245,101,101,.7)'],borderColor:['rgba(102,126,234,1)','rgba(237,137,54,1)','rgba(245,101,101,1)'],borderWidth:2,borderRadius:10}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'الضرر: '+formatNumber(ctx.parsed.y)}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>formatNumber(v),color:'var(--text-sub)',font:{family:'Tajawal'}},grid:{color:'rgba(128,128,128,.1)'}},x:{ticks:{color:'var(--text-sub)',font:{family:'Tajawal',weight:'bold'}},grid:{display:false}}}}});
+}
+function initUpgradeChart(){
+  const ctx=document.getElementById('upgradeChart').getContext('2d');
+  const atk=parseValue(document.getElementById('attack').value);
+  const powers=STAR_BONUS.map(b=>Math.round(atk*(1+b)));
+  if(upgradeChartInstance)upgradeChartInstance.destroy();
+  upgradeChartInstance=new Chart(ctx,{type:'line',data:{labels:['⭐','⭐⭐','⭐⭐⭐','⭐⭐⭐⭐','⭐⭐⭐⭐⭐'],datasets:[{label:'القوة الفعلية',data:powers,borderColor:'rgba(118,75,162,1)',backgroundColor:'rgba(118,75,162,.15)',borderWidth:3,fill:true,tension:.4,pointRadius:6,pointBackgroundColor:'#fff',pointBorderColor:'rgba(118,75,162,1)',pointBorderWidth:3,pointHoverRadius:9}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'القوة: '+formatNumber(ctx.parsed.y)}}},scales:{y:{beginAtZero:false,ticks:{callback:v=>formatNumber(v),color:'var(--text-sub)',font:{family:'Tajawal'}},grid:{color:'rgba(128,128,128,.1)'}},x:{ticks:{color:'var(--text-sub)',font:{family:'Tajawal',weight:'bold'}},grid:{display:false}}}}});
+}
+
+// ── Hero Avatar ──
+function heroAvatar(h,size=48){
+  const rc={tank:{SSR:'linear-gradient(135deg,#9b59b6,#6c3483)',SR:'linear-gradient(135deg,#5dade2,#1a5276)'},plane:{SSR:'linear-gradient(135deg,#a569bd,#5b2c6f)',SR:'linear-gradient(135deg,#48c9b0,#148f77)'},missile:{SSR:'linear-gradient(135deg,#bb8fce,#6c3483)',SR:'linear-gradient(135deg,#85c1e9,#2471a3)'}};
+  const ti={tank:'🟫',plane:'✈️',missile:'🚀'};
+  if(h.img)return `<img src="${h.img}" alt="${h.name}" style="width:${size}px;height:${size}px;border-radius:10px;object-fit:cover;border:2px solid ${RARITY_COLORS[h.rarity]};box-shadow:0 2px 8px rgba(0,0,0,.3);flex-shrink:0;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+  <div style="display:none;width:${size}px;height:${size}px;border-radius:10px;border:2px solid ${RARITY_COLORS[h.rarity]};background:${rc[h.type]?.[h.rarity]||'#444'};align-items:center;justify-content:center;font-weight:900;font-size:${Math.round(size*.42)}px;color:${RARITY_COLORS[h.rarity]};flex-shrink:0;">${h.name[0]}</div>`;
+  const bg=h.rarity==='UR'?`linear-gradient(135deg,${RARITY_COLORS[h.rarity]},${RARITY_COLORS[h.rarity]}88)`:rc[h.type]?.[h.rarity]||'#444';
+  return `<div style="width:${size}px;height:${size}px;border-radius:10px;border:2px solid ${RARITY_COLORS[h.rarity]};background:${bg};display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.25);">
+    <div style="font-size:${Math.round(size*.28)}px;line-height:1;">${ti[h.type]||''}</div>
+    <div style="font-weight:900;font-size:${Math.round(size*.3)}px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5);line-height:1.1;">${h.name[0]}</div>
+  </div>`;
+}
+
+function toggleHeroSkills(name){
+  const el=document.getElementById('skills-'+name);if(!el)return;
+  const open=el.style.maxHeight&&el.style.maxHeight!=='0px';
+  el.style.maxHeight=open?'0px':'400px';el.style.opacity=open?'0':'1';el.style.marginTop=open?'0':'10px';
+}
+function renderSkillsPanel(name){
+  const sk=HERO_SKILLS[name];if(!sk)return'';
+  return `<div id="skills-${name}" style="max-height:0;opacity:0;overflow:hidden;transition:all .3s ease;margin-top:0;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:2px;">
+      ${['auto','tactics','passive','expertise'].map(type=>{const s=sk[type],st=SKILL_TYPES[type];return`<div style="padding:8px;background:${st.color}11;border-radius:10px;border-right:3px solid ${st.color};">
+        <div style="font-size:.7rem;font-weight:700;color:${st.color};margin-bottom:3px;">${st.icon} ${st.name}</div>
+        <div style="font-size:.7rem;font-weight:700;">${s.nameAr}</div>
+        <div style="font-size:.62rem;color:var(--text-sub);">${s.name}</div>
+        <div style="font-size:.66rem;color:var(--text-sub);margin-top:3px;line-height:1.3;">${s.desc}</div>
+      </div>`;}).join('')}
+    </div>
+  </div>`;
 }
 
 function filterHeroes(){
-  let q = document.getElementById('hero_search').value.toLowerCase();
-  let l = HEROES_DB.filter(x => x.name.toLowerCase().includes(q) || x.ar.includes(q));
-  renderHeroes(l);
-}
-
-/* ─── LOGIC: TEAM ─── */
-function renderTeam(){
-  let d = document.getElementById('team_slots');
-  d.innerHTML = state.team.map((h,i) => h ? `
-    <div class="slot filled">
-      <div class="remove-btn" onclick="remTeam(${i})">✕</div>
-      <div style="font-size:0.7rem; font-weight:bold; text-align:center; line-height:1.1">${h.ar}</div>
-      <small style="font-size:0.6rem; opacity:0.7">${h.type}</small>
-    </div>
-  ` : `
-    <div class="slot"><span style="font-size:1.5rem; opacity:0.3">+</span></div>
-  `).join('');
-  
-  // Analyze
-  let filled = state.team.filter(x=>x);
-  if(filled.length === 0) { document.getElementById('team_stats').innerHTML = 'اختر 5 أبطال'; return; }
-  
-  let counts = {tank:0, plane:0, missile:0};
-  filled.forEach(x => counts[x.type]++);
-  let max = Math.max(...Object.values(counts));
-  let bonus = max===5?20:max===4?15:max>=3?10:0;
-  
-  document.getElementById('team_stats').innerHTML = `
-    <div style="display:flex; justify-content:space-between; align-items:center">
-      <span>عدد الأبطال: <strong>${filled.length}</strong></span>
-      <span class="tag ${bonus>0?'green':'red'}">Bonus: +${bonus}%</span>
-    </div>
-  `;
-}
-
-function addToTeam(idx){
-  let firstEmpty = state.team.indexOf(null);
-  if(firstEmpty === -1) return alert('الفريق ممتلئ');
-  let h = HEROES_DB[idx];
-  if(state.team.includes(h)) return alert('البطل موجود بالفعل');
-  state.team[firstEmpty] = h;
-  renderTeam();
-}
-function remTeam(i){ state.team[i] = null; renderTeam(); }
-function clearTeam(){ state.team.fill(null); renderTeam(); }
-
-/* ─── LOGIC: COMPARE ─── */
-function doCompare(){
-  let a1 = parseK(document.getElementById('c1_atk').value);
-  let a2 = parseK(document.getElementById('c2_atk').value);
-  let t1 = document.getElementById('c1_type').value;
-  let t2 = document.getElementById('c2_type').value;
-  
-  let mod1 = TYPE_ADV[t1]===t2 ? 1.2 : TYPE_ADV[t2]===t1 ? 0.8 : 1;
-  let mod2 = TYPE_ADV[t2]===t1 ? 1.2 : TYPE_ADV[t1]===t2 ? 0.8 : 1;
-  
-  let f1 = a1 * mod1;
-  let f2 = a2 * mod2;
-  
-  document.getElementById('comp_res').innerHTML = `
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; text-align:center;">
-      <div style="padding:10px; background:${f1>f2?'rgba(16,185,129,0.1)':'rgba(255,255,255,0.05)'}; border-radius:10px; border:1px solid ${f1>f2?'var(--success)':'var(--border)'}">
-        <div style="font-weight:bold">${fmt(f1)}</div>
-        <small>${mod1>1?'+20%':mod1<1?'-20%':'-'}</small>
+  const q=(document.getElementById('heroSearch')?.value||'').toLowerCase();
+  const tf=document.getElementById('heroFilterType')?.value||'all';
+  const rf=document.getElementById('heroFilterRarity')?.value||'all';
+  const list=HEROES.filter(h=>(tf==='all'||h.type===tf)&&(rf==='all'||h.rarity===rf)&&(!q||h.name.toLowerCase().includes(q)||h.nameAr.includes(q)));
+  const c=document.getElementById('heroList');if(!c)return;
+  if(!list.length){c.innerHTML='<p style="text-align:center;color:var(--text-sub);padding:20px;">لا توجد نتائج</p>';return;}
+  c.innerHTML=list.map(h=>{
+    const hs=!!HERO_SKILLS[h.name];
+    return `<div style="padding:11px;margin-bottom:8px;background:var(--bg-body);border-radius:14px;border-right:4px solid ${RARITY_COLORS[h.rarity]};${hs?'cursor:pointer;':''}" ${hs?`onclick="toggleHeroSkills('${h.name}')"`:''}>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="flex-shrink:0;">${heroAvatar(h,52)}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:800;font-size:.95rem;margin-bottom:2px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+            ${TYPE_NAMES[h.type]} ${h.nameAr}
+            <span style="font-size:.7rem;color:${RARITY_COLORS[h.rarity]};background:${RARITY_COLORS[h.rarity]}22;padding:1px 7px;border-radius:6px;">${h.rarity}</span>
+            ${h.dmg?`<span style="font-size:.66rem;opacity:.7;">${DMG_ICONS[h.dmg]}</span>`:''}
+          </div>
+          ${h.title?`<div style="font-size:.7rem;color:${RARITY_COLORS[h.rarity]};opacity:.8;margin-bottom:2px;">«${h.title}»</div>`:''}
+          <div style="font-size:.76rem;color:var(--text-sub);">${ROLE_NAMES[h.role]} · ${h.desc}</div>
+          <div style="font-size:.66rem;color:var(--text-sub);margin-top:2px;opacity:.6;display:flex;align-items:center;gap:6px;">${h.name}${hs?'<span style="font-size:.6rem;background:var(--primary);color:#fff;padding:1px 5px;border-radius:4px;">⬇ المهارات</span>':''}</div>
+        </div>
       </div>
-      <div style="padding:10px; background:${f2>f1?'rgba(16,185,129,0.1)':'rgba(255,255,255,0.05)'}; border-radius:10px; border:1px solid ${f2>f1?'var(--success)':'var(--border)'}">
-        <div style="font-weight:bold">${fmt(f2)}</div>
-        <small>${mod2>1?'+20%':mod2<1?'-20%':'-'}</small>
-      </div>
-    </div>
-  `;
+      ${hs?renderSkillsPanel(h.name):''}
+    </div>`;
+  }).join('');
+}
+function renderHeroes(){filterHeroes();}
+
+// ── EXP Calc ──
+function calculateEXP(){
+  const from=parseInt(document.getElementById('expFrom').value)||1;
+  const to=parseInt(document.getElementById('expTo').value)||60;
+  if(from>=to||from<1||to>175){document.getElementById('expResults').innerHTML='<p style="color:var(--danger);text-align:center;padding:12px;">❌ أدخل قيم صحيحة (1-175)</p>';return;}
+  let total=0;for(let i=from;i<to;i++)total+=HERO_EXP[i]||0;
+  let reqHQ=1;for(const[l,h]of Object.entries(HQ_CAPS)){if(to<=parseInt(l)){reqHQ=h;break;}}
+  document.getElementById('expResults').innerHTML=`<div style="margin-top:12px;padding:14px;background:var(--bg-body);border-radius:14px;"><div class="stats-grid"><div class="stat-box"><div class="stat-val" style="color:var(--primary);">${formatNumber(total)}</div><div class="stat-lbl">EXP مطلوب</div></div><div class="stat-box"><div class="stat-val" style="color:var(--warning);">HQ ${reqHQ}</div><div class="stat-lbl">مستوى المقر</div></div></div><div style="margin-top:10px;font-size:.78rem;color:var(--text-sub);text-align:center;">المستوى ${from} → ${to} | الفرق: ${to-from} مستوى</div></div>`;
 }
 
-function calcExp(){
-    let f = parseInt(document.getElementById('exp_from').value)||0;
-    let t = parseInt(document.getElementById('exp_to').value)||0;
-    let diff = (t*t*1500) - (f*f*1500); // Dummy logic for visual
-    document.getElementById('exp_res').innerText = `تحتاج تقريباً ${fmt(Math.abs(diff))} نقطة خبرة`;
+// ── Shard Calc ──
+function calculateShards(){
+  const from=parseInt(document.getElementById('shardFrom').value);
+  const to=parseInt(document.getElementById('shardTo').value);
+  if(from>=to){document.getElementById('shardResults').innerHTML='<p style="color:var(--danger);text-align:center;padding:12px;">❌ نجمة الهدف يجب أن تكون أعلى</p>';return;}
+  let total=0,breakdown=[];
+  for(let i=from;i<to;i++){total+=SHARD_COSTS[i];breakdown.push({star:i+1,cost:SHARD_COSTS[i]});}
+  document.getElementById('shardResults').innerHTML=`<div style="margin-top:12px;padding:14px;background:var(--bg-body);border-radius:14px;"><div class="stat-box" style="margin-bottom:12px;"><div class="stat-val" style="color:var(--primary);font-size:1.7rem;">${total}</div><div class="stat-lbl">شظية مطلوبة</div></div><div style="font-size:.82rem;">${breakdown.map(b=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);"><span>${'⭐'.repeat(b.star)} نجمة ${b.star}</span><strong>${b.cost}</strong></div>`).join('')}</div><div style="margin-top:10px;padding:9px;background:rgba(102,126,234,.08);border-radius:10px;font-size:.76rem;text-align:center;">💡 المجموع الكلي 0→5⭐ = <strong>975 شظية</strong></div></div>`;
 }
+
+// ── Medal Calc ──
+function selectMedalRarity(r,el){
+  selectedMedalRarity=r;
+  el.parentElement.querySelectorAll('.select-item').forEach(i=>i.classList.remove('selected'));
+  el.classList.add('selected');
+  const mx=r==='UR'?40:30;
+  document.getElementById('medalTo').max=mx;
+  if(parseInt(document.getElementById('medalTo').value)>mx)document.getElementById('medalTo').value=mx;
+}
+function calculateMedals(){
+  const from=parseInt(document.getElementById('medalFrom').value)||1;
+  const to=parseInt(document.getElementById('medalTo').value)||30;
+  const cnt=parseInt(document.getElementById('medalSkillCount').value)||1;
+  const ratio=MEDAL_RATIO[selectedMedalRarity];
+  const mx=selectedMedalRarity==='UR'?40:30;
+  if(from>=to||from<1||to>mx){document.getElementById('medalResults').innerHTML='<p style="color:var(--danger);text-align:center;padding:12px;">❌ تحقق من القيم المدخلة</p>';return;}
+  let totalPer=0;
+  for(let i=from-1;i<to-1&&i<MEDAL_COSTS_UR.length;i++)totalPer+=Math.round(MEDAL_COSTS_UR[i]*ratio);
+  const totalAll=totalPer*cnt;
+  const re={UR:'🟠',SSR:'🟣',SR:'🔵'};
+  const noteUR=selectedMedalRarity==='UR'&&to>30?'<div style="margin-top:8px;padding:8px;background:rgba(246,173,85,.1);border-radius:8px;font-size:.74rem;text-align:center;">⚠️ المستويات 31-40 تحتاج Exclusive Weapon</div>':'';
+  document.getElementById('medalResults').innerHTML=`<div style="margin-top:12px;padding:14px;background:var(--bg-body);border-radius:14px;"><div class="stats-grid"><div class="stat-box"><div class="stat-val" style="color:var(--primary);">${formatNumber(totalPer)}</div><div class="stat-lbl">ميدالية / مهارة</div></div><div class="stat-box"><div class="stat-val" style="color:var(--warning);">${formatNumber(totalAll)}</div><div class="stat-lbl">${cnt>1?`إجمالي (${cnt} مهارات)`:'إجمالي'}</div></div></div><div style="margin-top:10px;font-size:.78rem;text-align:center;color:var(--text-sub);">${re[selectedMedalRarity]} ${selectedMedalRarity} | مهارة ${from}→${to} | ${cnt} مهارة</div>${noteUR}</div>`;
+}
+
+// ── Healing Calc ──
+function calculateHealing(){
+  const w=parseValue(document.getElementById('healWounded').value);
+  const cap=parseValue(document.getElementById('healCapacity').value);
+  const t=parseFloat(document.getElementById('healTime').value)||5;
+  const ah=parseFloat(document.getElementById('healAllianceHelp').value)||0;
+  if(w<=0||cap<=0){document.getElementById('healResults').innerHTML='<p style="color:var(--danger);text-align:center;padding:12px;">❌ أدخل قيم صحيحة</p>';return;}
+  const batches=Math.ceil(w/cap);
+  const adjT=t*(1-ah/100);
+  const totalMin=Math.round((w*adjT)/60);
+  const hrs=Math.floor(totalMin/60),mins=totalMin%60;
+  const tStr=hrs>0?`${hrs}ساعة و ${mins}دقيقة`:`${mins} دقيقة`;
+  const ov=w>cap?w-cap:0;
+  document.getElementById('healResults').innerHTML=`<div style="margin-top:12px;padding:14px;background:var(--bg-body);border-radius:14px;"><div class="stats-grid"><div class="stat-box"><div class="stat-val" style="color:var(--primary);">${batches}</div><div class="stat-lbl">عدد الدفعات</div></div><div class="stat-box"><div class="stat-val" style="color:var(--warning);font-size:1rem;">${tStr}</div><div class="stat-lbl">الوقت الإجمالي</div></div></div>${ov>0?`<div style="margin-top:10px;padding:9px;background:rgba(255,68,68,.1);border-radius:10px;font-size:.78rem;text-align:center;color:var(--danger);">⚠️ تجاوز السعة بـ ${formatNumber(ov)} جندي</div>`:''}<div style="margin-top:9px;font-size:.76rem;color:var(--text-sub);text-align:center;">${formatNumber(w)} مصاب | سعة ${formatNumber(cap)} | ${ah}% مساعدة حلف</div></div>`;
+}
+
+// ── Tier List ──
+function renderTierList(){
+  const c=document.getElementById('tierListContent');let html='';
+  for(const[tier,heroes]of Object.entries(TIER_LIST)){
+    if(!heroes.length&&tier==='D')continue;
+    const color=TIER_COLORS[tier];
+    html+=`<div style="display:flex;align-items:stretch;margin-bottom:8px;border-radius:14px;overflow:hidden;border:1px solid var(--border);">
+      <div style="width:50px;min-height:50px;background:${color};display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.25rem;color:#fff;">${tier}</div>
+      <div style="flex:1;padding:8px;display:flex;flex-wrap:wrap;gap:7px;align-items:center;background:var(--bg-card);">
+        ${!heroes.length?'<span style="color:var(--text-sub);font-size:.8rem;">لا يوجد أبطال</span>':heroes.map(name=>{
+          const h=HEROES.find(x=>x.name===name);
+          if(!h)return `<span style="padding:5px 10px;background:var(--bg-body);border-radius:8px;font-size:.8rem;">${name}</span>`;
+          return`<div style="padding:5px 9px;background:var(--bg-body);border-radius:10px;font-size:.78rem;display:flex;align-items:center;gap:6px;border-bottom:2px solid ${color};">
+            ${heroAvatar(h,30)}
+            <div><div style="font-weight:700;font-size:.78rem;">${h.nameAr}</div><div style="font-size:.62rem;color:var(--text-sub);">${h.name}</div></div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }
+  c.innerHTML=html;
+}
+
+// ── Team Builder ──
+function renderTeamSlots(){
+  const c=document.getElementById('teamSlots');let html='';
+  for(let i=0;i<5;i++){
+    if(teamSlots[i]){
+      const h=teamSlots[i];
+      html+=`<div style="padding:6px;background:var(--bg-body);border-radius:12px;text-align:center;border:2px solid ${RARITY_COLORS[h.rarity]};cursor:pointer;position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;" onclick="removeFromTeam(${i})">
+        ${heroAvatar(h,38)}
+        <div style="font-size:.62rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">${h.nameAr}</div>
+        <div style="position:absolute;top:-4px;right:-4px;width:16px;height:16px;background:var(--danger);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.55rem;color:#fff;">✕</div>
+      </div>`;
+    }else{
+      html+=`<div style="padding:8px;background:var(--bg-body);border-radius:12px;text-align:center;border:2px dashed var(--border);opacity:.45;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:72px;">
+        <div style="font-size:1rem;">➕</div><div style="font-size:.6rem;margin-top:2px;">فارغ</div>
+      </div>`;
+    }
+  }
+  c.innerHTML=html;
+  document.getElementById('teamCount').textContent=teamSlots.filter(Boolean).length;
+  analyzeTeam();
+}
+function renderTeamBuilderList(){
+  const f=document.getElementById('tbFilter').value;
+  const fl=HEROES.filter(h=>f==='all'||h.type===f);
+  const c=document.getElementById('tbHeroList');
+  const inTeam=teamSlots.filter(Boolean).map(h=>h.name);
+  c.innerHTML=fl.map(h=>{
+    const it=inTeam.includes(h.name);
+    return`<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;margin-bottom:5px;background:${it?'rgba(102,126,234,.15)':'var(--bg-body)'};border-radius:10px;border-left:3px solid ${RARITY_COLORS[h.rarity]};${it?'opacity:.5;':'cursor:pointer;'}" ${it?'':` onclick="addToTeam('${h.name}')"`}>
+      <div style="flex-shrink:0;">${heroAvatar(h,34)}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:4px;"><strong style="font-size:.8rem;">${h.nameAr}</strong><span style="font-size:.63rem;color:${RARITY_COLORS[h.rarity]};">${h.rarity}</span></div>
+        <div style="font-size:.66rem;color:var(--text-sub);">${h.name}</div>
+      </div>
+      <div style="font-size:.7rem;color:var(--text-sub);flex-shrink:0;">${it?'✅':ROLE_NAMES[h.role]}</div>
+    </div>`;
+  }).join('');
+}
+function addToTeam(name){
+  if(teamSlots.filter(Boolean).length>=5)return;
+  const h=HEROES.find(x=>x.name===name);
+  if(!h||teamSlots.some(s=>s&&s.name===name))return;
+  const idx=teamSlots.findIndex(s=>!s);
+  if(idx===-1&&teamSlots.length<5)teamSlots.push(h);
+  else if(idx!==-1)teamSlots[idx]=h;
+  while(teamSlots.length<5)teamSlots.push(undefined);
+  renderTeamSlots();renderTeamBuilderList();
+}
+function removeFromTeam(i){
+  teamSlots[i]=undefined;
+  teamSlots=teamSlots.filter(Boolean);
+  while(teamSlots.length<5)teamSlots.push(undefined);
+  renderTeamSlots();renderTeamBuilderList();
+}
+function clearTeam(){teamSlots=[undefined,undefined,undefined,undefined,undefined];renderTeamSlots();renderTeamBuilderList();}
+function analyzeTeam(){
+  const team=teamSlots.filter(Boolean);
+  const c=document.getElementById('teamAnalysis');
+  if(!team.length){c.innerHTML='';return;}
+  const tc={tank:0,plane:0,missile:0};team.forEach(h=>tc[h.type]++);
+  const mx=Object.entries(tc).sort((a,b)=>b[1]-a[1])[0];
+  let bonus=mx[1]>=5?20:mx[1]>=4?15:mx[1]>=3?10:0;
+  const rc={attack:0,defense:0,support:0};team.forEach(h=>rc[h.role]++);
+  const rr={UR:0,SSR:0,SR:0};team.forEach(h=>rr[h.rarity]++);
+  c.innerHTML=`<div style="padding:13px;background:var(--bg-body);border-radius:12px;">
+    <div style="font-weight:700;margin-bottom:10px;">📊 تحليل الفريق</div>
+    <div class="stats-grid" style="margin-bottom:10px;">
+      <div class="stat-box"><div class="stat-val" style="color:${bonus>0?'var(--success)':'var(--text-sub)'};">+${bonus}%</div><div class="stat-lbl">بونص التشكيلة</div></div>
+      <div class="stat-box"><div class="stat-val">${team.length}/5</div><div class="stat-lbl">أبطال</div></div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:.78rem;"><span>🟫 ${tc.tank}</span><span>✈️ ${tc.plane}</span><span>🚀 ${tc.missile}</span></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:.78rem;margin-top:5px;"><span>⚔️ ${rc.attack}</span><span>🛡️ ${rc.defense}</span><span>💊 ${rc.support}</span></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:.78rem;margin-top:5px;"><span style="color:${RARITY_COLORS.UR};">UR:${rr.UR}</span><span style="color:${RARITY_COLORS.SSR};">SSR:${rr.SSR}</span><span style="color:${RARITY_COLORS.SR};">SR:${rr.SR}</span></div>
+    ${bonus===0&&team.length>=3?'<div style="margin-top:8px;padding:6px;background:rgba(255,136,0,.1);border-radius:8px;font-size:.71rem;color:var(--warning);text-align:center;">💡 استخدم 3+ أبطال من نفس النوع للحصول على بونص التشكيلة</div>':''}
+  </div>`;
+}
+function renderMetaTeams(){
+  document.getElementById('metaTeams').innerHTML=META_TEAMS.map((team,i)=>`
+  <div style="padding:13px;background:var(--bg-body);border-radius:12px;margin-bottom:10px;">
+    <div style="font-weight:700;margin-bottom:6px;">${team.name}</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+      ${team.heroes.map(n=>{const h=HEROES.find(x=>x.name===n);return`<span style="padding:4px 9px;background:var(--bg-card);border-radius:6px;font-size:.77rem;border-left:2px solid ${h?RARITY_COLORS[h.rarity]:'#888'};">${h?h.nameAr:n}</span>`;}).join('')}
+    </div>
+    <div style="font-size:.74rem;color:var(--text-sub);">${team.desc}</div>
+    <button onclick="loadMetaTeam(${i})" style="margin-top:8px;padding:7px 14px;font-size:.77rem;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border:none;border-radius:9px;cursor:pointer;font-family:Tajawal;font-weight:700;">📋 استخدم هذا الفريق</button>
+  </div>`).join('');
+}
+function loadMetaTeam(i){
+  const team=META_TEAMS[i];teamSlots=[];
+  team.heroes.forEach(n=>{const h=HEROES.find(x=>x.name===n);if(h)teamSlots.push(h);});
+  while(teamSlots.length<5)teamSlots.push(undefined);
+  renderTeamSlots();renderTeamBuilderList();
+}
+
+updatePreview();
 </script>
+
 </body>
 </html>
