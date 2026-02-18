@@ -1,573 +1,508 @@
 <!DOCTYPE html>
-
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>حاسبة المشاريع - مركز تحكم الحدود الشمالية</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap');
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>حاسبة المشاريع - مركز التحكم</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap');
 
-:root {
-–primary: #6c63ff;
-–primary-dark: #4e46e5;
-–glow: rgba(108,99,255,0.5);
-–success: #22c55e;
-–warn: #f59e0b;
-–danger: #ef4444;
-}
+        :root {
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.4);
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg-dark: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --border: rgba(255, 255, 255, 0.1);
+        }
 
-- { margin:0; padding:0; box-sizing:border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-body {
-font-family: ‘Tajawal’, sans-serif;
-min-height: 100vh;
-background: #070714;
-display: flex;
-flex-direction: column;
-align-items: center;
-justify-content: center;
-padding: 30px 16px;
-overflow-x: hidden;
-position: relative;
-}
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
 
-/* Animated background */
-.bg-grid {
-position: fixed; inset: 0;
-background-image:
-linear-gradient(rgba(108,99,255,0.06) 1px, transparent 1px),
-linear-gradient(90deg, rgba(108,99,255,0.06) 1px, transparent 1px);
-background-size: 50px 50px;
-z-index: 0;
-}
+        /* خلفية النجوم المتحركة */
+        .stars {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: -1;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 90px 40px, #fff, rgba(0,0,0,0));
+            background-size: 200px 200px;
+            animation: starsAnim 100s linear infinite;
+            opacity: 0.3;
+        }
+        @keyframes starsAnim { from {transform: translateY(0);} to {transform: translateY(-1000px);} }
 
-.orb {
-position: fixed;
-border-radius: 50%;
-filter: blur(80px);
-z-index: 0;
-animation: drift 10s ease-in-out infinite alternate;
-}
-.orb1 { width:400px; height:400px; background:rgba(108,99,255,0.18); top:-100px; right:-100px; animation-delay:0s;}
-.orb2 { width:300px; height:300px; background:rgba(34,197,94,0.1); bottom:-80px; left:-80px; animation-delay:-3s;}
-.orb3 { width:200px; height:200px; background:rgba(245,158,11,0.08); top:50%; left:50%; animation-delay:-6s;}
+        /* الحاوية الرئيسية */
+        .container {
+            width: 100%;
+            max-width: 480px;
+            position: relative;
+            z-index: 10;
+        }
 
-@keyframes drift {
-from { transform: translate(0,0) scale(1); }
-to   { transform: translate(30px,30px) scale(1.1); }
-}
+        /* الهيدر */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+        .logo-badge {
+            width: 60px; height: 60px;
+            background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(16,185,129,0.2));
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px;
+            border: 1px solid var(--border);
+            box-shadow: 0 0 20px var(--primary-glow);
+            animation: pulse 2s infinite ease-in-out;
+        }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(99,102,241,0.4); } 70% { box-shadow: 0 0 0 15px rgba(99,102,241,0); } 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0); } }
 
-/* Main wrapper */
-.wrapper { position:relative; z-index:1; width:100%; max-width:560px; }
+        .header h1 { font-size: 26px; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.5px; }
+        .header p { color: rgba(255,255,255,0.6); font-size: 14px; margin-bottom: 4px; }
+        .header .sub-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3);
+            border-radius: 20px; padding: 4px 12px;
+            color: #a5b4fc; font-size: 12px; font-weight: 700;
+            margin-top: 8px;
+        }
 
-/* Logo bar */
-.logo-bar {
-display: flex;
-align-items: center;
-justify-content: center;
-gap: 14px;
-margin-bottom: 28px;
-}
+        /* البطاقة الرئيسية - تأثير زجاجي */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 24px 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.05);
+            animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
 
-.logo-icon {
-width: 52px; height: 52px;
-background: linear-gradient(135deg, var(–primary), var(–primary-dark));
-border-radius: 14px;
-display: flex; align-items: center; justify-content: center;
-font-size: 26px;
-box-shadow: 0 0 20px var(–glow);
-animation: pulse-logo 2.5s ease-in-out infinite;
-}
+        /* الحقول */
+        .input-group { margin-bottom: 18px; position: relative; }
+        .input-group label {
+            display: flex; align-items: center; gap: 8px;
+            color: rgba(255,255,255,0.8); font-size: 13px; font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .icon-box {
+            width: 24px; height: 24px; background: rgba(255,255,255,0.1);
+            border-radius: 6px; display: flex; align-items: center; justify-content: center;
+            font-size: 12px;
+        }
 
-@keyframes pulse-logo {
-0%,100% { box-shadow: 0 0 20px var(–glow); }
-50%      { box-shadow: 0 0 40px var(–glow); }
-}
+        input[type="datetime-local"] {
+            width: 100%;
+            padding: 16px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            color: #fff;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            outline: none;
+            transition: all 0.3s;
+            appearance: none;
+        }
+        input[type="datetime-local"]:focus {
+            background: rgba(99,102,241,0.1);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99,102,241,0.15);
+        }
+        
+        /* أيقونة التقويم */
+        input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+            filter: invert(1); opacity: 0.6; cursor: pointer;
+            transition: 0.2s;
+        }
+        input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator { opacity: 1; transform: scale(1.1); }
 
-.logo-text h2 { color:#fff; font-size:17px; font-weight:800; }
-.logo-text p  { color:rgba(255,255,255,0.4); font-size:12px; margin-top:2px; }
+        /* سهم الاتجاه */
+        .direction-arrow {
+            text-align: center; margin: 10px 0; color: rgba(255,255,255,0.2); font-size: 18px;
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
 
-/* Card */
-.card {
-background: rgba(255,255,255,0.04);
-backdrop-filter: blur(30px);
-border: 1px solid rgba(255,255,255,0.08);
-border-radius: 28px;
-padding: 40px 36px 32px;
-box-shadow: 0 30px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
-transition: transform 0.3s;
-}
+        /* زر الحساب */
+        .btn-calc {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, var(--primary), #4338ca);
+            border: none; border-radius: 16px;
+            color: #fff; font-size: 18px; font-weight: 800; font-family: 'Tajawal', sans-serif;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(99,102,241,0.4);
+            position: relative; overflow: hidden;
+            transition: transform 0.1s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+        .btn-calc::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(rgba(255,255,255,0.2), transparent);
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .btn-calc:active { transform: scale(0.97); }
+        .btn-calc:hover::after { opacity: 1; }
 
-.card:hover { transform: translateY(-2px); }
+        /* منطقة النتائج */
+        .result-modal {
+            margin-top: 25px;
+            display: none; /* مخفي افتراضياً */
+            animation: reveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
 
-.card-header { text-align:center; margin-bottom:36px; }
-.card-header h1 { color:#fff; font-size:24px; font-weight:900; letter-spacing:-0.3px; }
-.card-header p  { color:rgba(255,255,255,0.35); font-size:13px; margin-top:6px; }
+        .result-inner {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 20px;
+            padding: 24px 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+            text-align: center;
+        }
+        
+        /* حالات النتيجة */
+        .result-inner.pass { border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.08); }
+        .result-inner.fail { border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.08); }
+        .result-inner.warn { border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.08); }
 
-/* Requirement badge */
-.req-badge {
-display: inline-flex;
-align-items: center;
-gap: 6px;
-background: rgba(108,99,255,0.15);
-border: 1px solid rgba(108,99,255,0.35);
-border-radius: 20px;
-padding: 5px 14px;
-color: #a89fff;
-font-size: 12px;
-font-weight: 700;
-margin-top: 10px;
-}
+        .status-icon { font-size: 48px; margin-bottom: 10px; display: block; }
+        
+        .main-msg { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+        .sub-msg { font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.6; margin-bottom: 20px; }
+        
+        /* عداد الساعات */
+        .counter-box {
+            display: flex; gap: 10px; margin-bottom: 20px;
+        }
+        .counter-item {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px; padding: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .counter-val { font-size: 24px; font-weight: 900; line-height: 1; }
+        .counter-lbl { font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 600; margin-top: 4px; }
 
-.req-badge span { color:#fff; font-size:14px; }
+        /* شريط التقدم */
+        .progress-cont {
+            height: 10px; background: rgba(255,255,255,0.1); border-radius: 20px; overflow: hidden; margin-top: 10px;
+        }
+        .progress-bar {
+            height: 100%; width: 0; transition: width 1s ease-out; border-radius: 20px;
+        }
+        .pass .progress-bar { background: var(--success); box-shadow: 0 0 10px var(--success); }
+        .fail .progress-bar { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
+        .warn .progress-bar { background: var(--warning); box-shadow: 0 0 10px var(--warning); }
 
-/* Fields */
-.fields-grid { display:grid; gap:18px; }
+        /* أزرار الاجراءات */
+        .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .btn-act {
+            padding: 12px; border-radius: 12px; font-weight: 700; font-size: 13px; font-family: inherit; cursor: pointer; border: none; transition: 0.2s;
+        }
+        .btn-reset { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.6); }
+        .btn-reset:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .btn-copy { background: rgba(99,102,241,0.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.2); }
+        .btn-copy:hover { background: rgba(99,102,241,0.25); color: #fff; }
 
-.field { position:relative; }
+        /* تذييل */
+        .footer { text-align: center; margin-top: 30px; font-size: 12px; color: rgba(255,255,255,0.2); }
 
-label {
-display:flex; align-items:center; gap:8px;
-color:rgba(255,255,255,0.6);
-font-size:13px; font-weight:600;
-margin-bottom:9px;
-}
+        /* Keyframes */
+        @keyframes fadeInDown { from { opacity:0; transform: translateY(-20px); } to { opacity:1; transform: translateY(0); } }
+        @keyframes slideUp { from { opacity:0; transform: translateY(40px) scale(0.95); } to { opacity:1; transform: translateY(0) scale(1); } }
+        @keyframes reveal { from { opacity:0; height:0; transform: scale(0.9); } to { opacity:1; height:auto; transform: scale(1); } }
 
-.label-icon {
-width:26px; height:26px;
-background:rgba(255,255,255,0.07);
-border-radius:7px;
-display:flex; align-items:center; justify-content:center;
-font-size:13px;
-}
+        /* كانفاس الاحتفال */
+        #confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
 
-input[type=“datetime-local”] {
-width:100%;
-padding:14px 18px;
-background:rgba(255,255,255,0.06);
-border:1px solid rgba(255,255,255,0.1);
-border-radius:14px;
-color:#fff;
-font-size:14px;
-font-family:‘Tajawal’,sans-serif;
-outline:none;
-transition:all 0.3s;
-cursor:pointer;
-}
-
-input[type=“datetime-local”]:hover {
-background:rgba(255,255,255,0.09);
-border-color:rgba(108,99,255,0.4);
-}
-
-input[type=“datetime-local”]:focus {
-border-color:var(–primary);
-background:rgba(108,99,255,0.1);
-box-shadow:0 0 0 3px rgba(108,99,255,0.15);
-}
-
-input[type=“datetime-local”]::-webkit-calendar-picker-indicator {
-filter:invert(1); opacity:0.5; cursor:pointer;
-}
-
-/* Divider with icon */
-.divider-arrow {
-display:flex; align-items:center; justify-content:center;
-gap:10px; margin:4px 0;
-color:rgba(255,255,255,0.2); font-size:12px;
-}
-
-.divider-arrow::before,
-.divider-arrow::after {
-content:’’; flex:1;
-border-top:1px dashed rgba(255,255,255,0.08);
-}
-
-/* Button */
-.btn {
-width:100%; margin-top:24px;
-padding:16px;
-background:linear-gradient(135deg, var(–primary), var(–primary-dark));
-border:none; border-radius:16px;
-color:#fff; font-size:16px; font-weight:800;
-font-family:‘Tajawal’,sans-serif;
-cursor:pointer;
-position:relative; overflow:hidden;
-transition:transform 0.2s, box-shadow 0.2s;
-}
-
-.btn::after {
-content:’’;
-position:absolute; inset:0;
-background:linear-gradient(135deg,rgba(255,255,255,0.15),transparent);
-opacity:0; transition:opacity 0.3s;
-}
-
-.btn:hover { transform:translateY(-2px); box-shadow:0 12px 30px rgba(108,99,255,0.45); }
-.btn:hover::after { opacity:1; }
-.btn:active { transform:translateY(0); }
-
-.btn-inner { display:flex; align-items:center; justify-content:center; gap:8px; }
-
-/* Loading spinner */
-.spinner {
-width:18px; height:18px;
-border:2px solid rgba(255,255,255,0.3);
-border-top-color:#fff;
-border-radius:50%;
-animation:spin 0.7s linear infinite;
-display:none;
-}
-@keyframes spin { to { transform:rotate(360deg); } }
-
-/* Result */
-.result {
-margin-top:28px;
-display:none;
-animation:slideUp 0.5s cubic-bezier(0.34,1.56,0.64,1);
-}
-
-@keyframes slideUp {
-from { opacity:0; transform:translateY(20px) scale(0.97); }
-to   { opacity:1; transform:translateY(0)    scale(1); }
-}
-
-.result-box {
-border-radius:20px;
-padding:28px 24px;
-text-align:center;
-border:1px solid transparent;
-position:relative;
-overflow:hidden;
-}
-
-.result-box::before {
-content:’’; position:absolute; inset:0;
-background:inherit; z-index:0;
-}
-
-.result-box > * { position:relative; z-index:1; }
-
-.result-box.pass { background:rgba(34,197,94,0.08); border-color:rgba(34,197,94,0.25); }
-.result-box.fail { background:rgba(239,68,68,0.08); border-color:rgba(239,68,68,0.25); }
-.result-box.warn { background:rgba(245,158,11,0.08); border-color:rgba(245,158,11,0.25); }
-
-/* Status icon with ring */
-.status-ring {
-width:72px; height:72px;
-border-radius:50%;
-display:flex; align-items:center; justify-content:center;
-margin:0 auto 14px;
-font-size:32px;
-position:relative;
-}
-
-.pass .status-ring { background:rgba(34,197,94,0.15); box-shadow:0 0 0 8px rgba(34,197,94,0.06), 0 0 30px rgba(34,197,94,0.2); }
-.fail .status-ring { background:rgba(239,68,68,0.15);  box-shadow:0 0 0 8px rgba(239,68,68,0.06),  0 0 30px rgba(239,68,68,0.2); }
-.warn .status-ring { background:rgba(245,158,11,0.15); box-shadow:0 0 0 8px rgba(245,158,11,0.06), 0 0 30px rgba(245,158,11,0.2); }
-
-.status-label { font-size:19px; font-weight:900; margin-bottom:20px; }
-.pass .status-label { color:#4ade80; }
-.fail .status-label { color:#f87171; }
-.warn .status-label { color:#fbbf24; }
-
-/* Stats row */
-.stats { display:flex; justify-content:center; gap:12px; flex-wrap:wrap; }
-
-.stat-card {
-background:rgba(255,255,255,0.06);
-border:1px solid rgba(255,255,255,0.08);
-border-radius:14px;
-padding:14px 20px;
-min-width:105px;
-flex:1;
-transition:transform 0.2s;
-}
-
-.stat-card:hover { transform:translateY(-3px); }
-
-.stat-num {
-font-size:30px; font-weight:900; color:#fff;
-line-height:1;
-}
-
-.stat-unit { font-size:11px; color:rgba(255,255,255,0.35); margin-top:5px; font-weight:600; }
-
-/* Progress bar */
-.progress-wrap { margin-top:20px; }
-.progress-label { display:flex; justify-content:space-between; color:rgba(255,255,255,0.4); font-size:11px; margin-bottom:6px; }
-.progress-track { height:8px; background:rgba(255,255,255,0.07); border-radius:99px; overflow:hidden; }
-.progress-fill  { height:100%; border-radius:99px; transition:width 1s cubic-bezier(0.34,1.2,0.64,1); width:0; }
-.pass .progress-fill { background:linear-gradient(90deg,#22c55e,#4ade80); }
-.fail .progress-fill { background:linear-gradient(90deg,#ef4444,#f87171); }
-.warn .progress-fill { background:linear-gradient(90deg,#f59e0b,#fbbf24); }
-
-.result-msg {
-margin-top:16px; font-size:13px;
-color:rgba(255,255,255,0.45); line-height:1.9;
-background:rgba(255,255,255,0.03);
-border-radius:10px; padding:10px 14px;
-}
-
-/* Action buttons */
-.action-row { display:flex; gap:10px; margin-top:16px; }
-
-.btn-reset, .btn-copy {
-flex:1; padding:12px;
-border-radius:12px;
-font-family:‘Tajawal’,sans-serif;
-font-size:13px; font-weight:700;
-cursor:pointer; transition:all 0.2s;
-}
-
-.btn-reset {
-background:transparent;
-border:1px solid rgba(255,255,255,0.12);
-color:rgba(255,255,255,0.5);
-}
-.btn-reset:hover { background:rgba(255,255,255,0.06); color:#fff; }
-
-.btn-copy {
-background:rgba(108,99,255,0.15);
-border:1px solid rgba(108,99,255,0.3);
-color:#a89fff;
-}
-.btn-copy:hover { background:rgba(108,99,255,0.25); color:#fff; }
-
-/* Footer */
-footer {
-margin-top:28px;
-text-align:center;
-position:relative; z-index:1;
-}
-
-.footer-inner {
-display:inline-flex; align-items:center; gap:8px;
-background:rgba(255,255,255,0.04);
-border:1px solid rgba(255,255,255,0.07);
-border-radius:20px;
-padding:8px 20px;
-}
-
-.footer-dot {
-width:6px; height:6px; border-radius:50%;
-background:var(–primary);
-animation:blink 1.8s ease-in-out infinite;
-}
-
-@keyframes blink {
-0%,100% { opacity:1; box-shadow:0 0 6px var(–primary); }
-50%      { opacity:0.3; box-shadow:none; }
-}
-
-footer p { color:rgba(255,255,255,0.3); font-size:12px; font-weight:600; }
-footer small { color:rgba(255,255,255,0.18); font-size:10px; display:block; margin-top:5px; }
-</style>
-
+        /* Live Preview Tag */
+        .live-preview {
+            position: absolute; right: 0; top: 0;
+            background: var(--primary); color: #fff;
+            font-size: 10px; padding: 2px 6px; border-radius: 4px;
+            display: none; font-weight: 700;
+        }
+    </style>
 </head>
 <body>
 
-<div class="bg-grid"></div>
-<div class="orb orb1"></div>
-<div class="orb orb2"></div>
-<div class="orb orb3"></div>
+    <div class="stars"></div>
+    <canvas id="confetti"></canvas>
 
-<div class="wrapper">
+    <div class="container">
+        
+        <div class="header">
+            <div class="logo-badge">🛡️</div>
+            <h1>مركز التحكم</h1>
+            <p>نظام إدارة اعتماد المشاريع - الحدود الشمالية</p>
+            <div class="sub-badge">⏱ الحد الأدنى: 60 ساعة</div>
+        </div>
 
-  <!-- Logo -->
+        <div class="glass-card">
+            
+            <div class="input-group">
+                <label>
+                    <div class="icon-box">📅</div>
+                    تاريخ ووقت الاعتماد
+                </label>
+                <input type="datetime-local" id="start-date">
+            </div>
 
-  <div class="logo-bar">
-    <div class="logo-icon">🛡️</div>
-    <div class="logo-text">
-      <h2>مركز تحكم الحدود الشمالية</h2>
-      <p>نظام إدارة اعتماد المشاريع</p>
-    </div>
-  </div>
+            <div class="direction-arrow">⬇</div>
 
-  <!-- Card -->
+            <div class="input-group">
+                <label>
+                    <div class="icon-box">🚀</div>
+                    تاريخ ووقت التنفيذ
+                    <span id="diff-preview" class="live-preview">0 س</span>
+                </label>
+                <input type="datetime-local" id="end-date">
+            </div>
 
-  <div class="card">
-    <div class="card-header">
-      <h1>حاسبة اعتماد المشاريع</h1>
-      <p>تحقق من استيفاء الفترة الزمنية المطلوبة</p>
-      <div class="req-badge">⏱ الحد الأدنى المطلوب: <span>60 ساعة</span></div>
-    </div>
+            <button class="btn-calc" onclick="calculateTime()" id="calc-btn">
+                <span>⚡ احسب الفارق الزمني</span>
+            </button>
 
-```
-<div class="fields-grid">
-  <div class="field">
-    <label><div class="label-icon">📋</div> تاريخ ووقت الاعتماد</label>
-    <input type="datetime-local" id="approvalDate" oninput="liveCheck()">
-  </div>
+            <div class="result-modal" id="result-area">
+                <div class="result-inner" id="result-box">
+                    <span class="status-icon" id="res-icon">✅</span>
+                    <div class="main-msg" id="res-title">المشروع جاهز</div>
+                    <div class="sub-msg" id="res-desc">تم استيفاء الشروط بنجاح</div>
 
-  <div class="divider-arrow">⬇ الفارق الزمني ⬇</div>
+                    <div class="counter-box">
+                        <div class="counter-item">
+                            <div class="counter-val" id="val-hours">0</div>
+                            <div class="counter-lbl">ساعة كاملة</div>
+                        </div>
+                        <div class="counter-item">
+                            <div class="counter-val" id="val-days">0</div>
+                            <div class="counter-lbl">عدد الأيام</div>
+                        </div>
+                        <div class="counter-item">
+                            <div class="counter-val" id="val-extra">0</div>
+                            <div class="counter-lbl">فرق (+/-)</div>
+                        </div>
+                    </div>
 
-  <div class="field">
-    <label><div class="label-icon">🚀</div> تاريخ ووقت التنفيذ</label>
-    <input type="datetime-local" id="executionDate" oninput="liveCheck()">
-  </div>
-</div>
+                    <div style="text-align: right; font-size: 11px; margin-bottom: 4px; color:rgba(255,255,255,0.4)">نسبة الإنجاز</div>
+                    <div class="progress-cont">
+                        <div class="progress-bar" id="prog-bar"></div>
+                    </div>
 
-<button class="btn" id="calcBtn" onclick="calculate()">
-  <div class="btn-inner">
-    <div class="spinner" id="spinner"></div>
-    <span id="btnText">احسب الفارق الزمني</span>
-  </div>
-</button>
+                    <div class="actions">
+                        <button class="btn-reset" onclick="resetForm()">🔄 جديد</button>
+                        <button class="btn-copy" onclick="copyResult()">📋 نسخ النتيجة</button>
+                    </div>
+                </div>
+            </div>
 
-<div class="result" id="result">
-  <div class="result-box" id="resultBox">
-    <div class="status-ring" id="statusIcon"></div>
-    <div class="status-label" id="statusText"></div>
+        </div>
 
-    <div class="stats">
-      <div class="stat-card">
-        <div class="stat-num" id="totalHours">—</div>
-        <div class="stat-unit">إجمالي الساعات</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" id="totalDays">—</div>
-        <div class="stat-unit">الأيام الكاملة</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" id="remHours">—</div>
-        <div class="stat-unit">الساعات الزائدة</div>
-      </div>
-    </div>
-
-    <div class="progress-wrap">
-      <div class="progress-label">
-        <span>0 ساعة</span>
-        <span id="progressLabel"></span>
-        <span>60 ساعة</span>
-      </div>
-      <div class="progress-track">
-        <div class="progress-fill" id="progressFill"></div>
-      </div>
+        <div class="footer">
+            © 2025 جميع الحقوق محفوظة لمركز التحكم
+        </div>
     </div>
 
-    <div class="result-msg" id="resultMsg"></div>
-  </div>
+    <script>
+        // إعدادات أساسية
+        const REQUIRED_HOURS = 60;
+        let lastOutput = "";
+        
+        // استماع للتغييرات (Live Preview)
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(inp => {
+            inp.addEventListener('input', () => {
+                const s = new Date(document.getElementById('start-date').value);
+                const e = new Date(document.getElementById('end-date').value);
+                const prev = document.getElementById('diff-preview');
+                
+                if(s && e && !isNaN(s) && !isNaN(e)) {
+                    const diff = (e - s) / 3600000;
+                    if(diff > 0) {
+                        prev.style.display = 'inline-block';
+                        prev.textContent = diff.toFixed(1) + ' س';
+                        prev.style.background = diff >= REQUIRED_HOURS ? '#10b981' : '#ef4444';
+                    }
+                }
+            });
+        });
 
-  <div class="action-row">
-    <button class="btn-reset" onclick="reset()">🔄 إعادة الحساب</button>
-    <button class="btn-copy" onclick="copyResult()">📋 نسخ النتيجة</button>
-  </div>
-</div>
-```
+        function calculateTime() {
+            // Haptic Feedback (Vibration)
+            if(navigator.vibrate) navigator.vibrate(50);
 
-  </div>
+            const startVal = document.getElementById('start-date').value;
+            const endVal = document.getElementById('end-date').value;
 
-  <!-- Footer -->
+            if (!startVal || !endVal) {
+                alert("⚠️ الرجاء تعبئة التواريخ أولاً");
+                return;
+            }
 
-  <footer>
-    <div class="footer-inner">
-      <div class="footer-dot"></div>
-      <p>© مركز تحكم الحدود الشمالية — 2025</p>
-    </div>
-    <small>جميع الحقوق محفوظة &nbsp;|&nbsp; نظام إدارة اعتماد المشاريع</small>
-  </footer>
+            const start = new Date(startVal);
+            const end = new Date(endVal);
 
-</div>
+            if (end <= start) {
+                alert("❌ تاريخ التنفيذ يجب أن يكون بعد تاريخ الاعتماد");
+                return;
+            }
 
-<script>
-  const REQUIRED = 60;
-  let lastResult = '';
+            // Calculation
+            const diffMs = end - start;
+            const totalHours = diffMs / (1000 * 60 * 60);
+            const days = Math.floor(totalHours / 24);
+            const extraHours = (totalHours - REQUIRED_HOURS).toFixed(1);
 
-  function liveCheck() {
-    const a = document.getElementById('approvalDate').value;
-    const e = document.getElementById('executionDate').value;
-    if (!a || !e) return;
-    const diff = (new Date(e) - new Date(a)) / 3600000;
-    if (diff > 0) {
-      const btn = document.getElementById('calcBtn');
-      btn.style.background = diff >= REQUIRED
-        ? 'linear-gradient(135deg,#22c55e,#16a34a)'
-        : 'linear-gradient(135deg,#ef4444,#b91c1c)';
-    }
-  }
+            // UI Elements
+            const resArea = document.getElementById('result-area');
+            const resBox = document.getElementById('result-box');
+            const icon = document.getElementById('res-icon');
+            const title = document.getElementById('res-title');
+            const desc = document.getElementById('res-desc');
+            const bar = document.getElementById('prog-bar');
 
-  function calculate() {
-    const a = document.getElementById('approvalDate').value;
-    const e = document.getElementById('executionDate').value;
-    if (!a || !e) { alert('⚠️ يرجى تحديد التاريخ والوقت في كلا الحقلين'); return; }
+            // Set Values
+            document.getElementById('val-hours').textContent = Math.floor(totalHours);
+            document.getElementById('val-days').textContent = days;
+            document.getElementById('val-extra').textContent = (totalHours >= REQUIRED_HOURS ? '+' : '') + extraHours;
 
-    const t1 = new Date(a), t2 = new Date(e);
-    if (t2 <= t1) { alert('⚠️ تاريخ التنفيذ يجب أن يكون بعد تاريخ الاعتماد'); return; }
+            // Reset Classes
+            resBox.className = 'result-inner';
+            resArea.style.display = 'block';
 
-    // Animate button
-    const spinner = document.getElementById('spinner');
-    const btnText = document.getElementById('btnText');
-    spinner.style.display = 'block';
-    btnText.textContent = 'جاري الحساب...';
+            // Logic Tree
+            let percentage = (totalHours / REQUIRED_HOURS) * 100;
+            if(percentage > 100) percentage = 100;
 
-    setTimeout(() => {
-      spinner.style.display = 'none';
-      btnText.textContent = 'احسب الفارق الزمني';
+            setTimeout(() => {
+                bar.style.width = percentage + '%';
+            }, 100);
 
-      const diffH  = (t2 - t1) / 3600000;
-      const days   = Math.floor(diffH / 24);
-      const extra  = Math.floor(diffH % 24);
-      const totalH = Math.floor(diffH);
+            if (totalHours >= REQUIRED_HOURS) {
+                // Success
+                resBox.classList.add('pass');
+                icon.textContent = '🎉';
+                title.textContent = 'مستوفٍ للشرط';
+                title.style.color = '#4ade80';
+                desc.innerHTML = `يتجاوز الحد الأدنى بـ <b>${extraHours} ساعة</b>. <br>يمكن اعتماد المشروع للتنفيذ.`;
+                launchConfetti();
+                
+                lastOutput = `✅ *نتيجة الاعتماد: مستوفٍ للشروط*\n- الساعات: ${totalHours.toFixed(1)} ساعة\n- الأيام: ${days} يوم\n- الزيادة: +${extraHours} ساعة`;
 
-      const box  = document.getElementById('resultBox');
-      const icon = document.getElementById('statusIcon');
-      const text = document.getElementById('statusText');
-      const msg  = document.getElementById('resultMsg');
-      const fill = document.getElementById('progressFill');
-      const plbl = document.getElementById('progressLabel');
+            } else if (totalHours >= (REQUIRED_HOURS - 5)) {
+                // Warning
+                resBox.classList.add('warn');
+                icon.textContent = '⚠️';
+                title.textContent = 'قريب جداً';
+                title.style.color = '#fbbf24';
+                desc.innerHTML = `ينقصك فقط <b>${Math.abs(extraHours)} ساعة</b>. <br>يُنصح بتأجيل التنفيذ قليلاً.`;
+                
+                lastOutput = `⚠️ *نتيجة الاعتماد: قريب جداً*\n- الساعات: ${totalHours.toFixed(1)} ساعة\n- النقص: ${Math.abs(extraHours)} ساعة`;
 
-      document.getElementById('totalHours').textContent = totalH;
-      document.getElementById('totalDays').textContent  = days;
-      document.getElementById('remHours').textContent   = diffH >= REQUIRED ? '+' + (diffH - REQUIRED).toFixed(1) : '0';
+            } else {
+                // Fail
+                resBox.classList.add('fail');
+                icon.textContent = '⛔';
+                title.textContent = 'غير مستوفٍ';
+                title.style.color = '#f87171';
+                desc.innerHTML = `الفارق الزمني قليل جداً. <br>تحتاج <b>${Math.abs(extraHours)} ساعة إضافية</b>.`;
+                
+                lastOutput = `❌ *نتيجة الاعتماد: غير مستوفٍ*\n- الساعات: ${totalHours.toFixed(1)} ساعة\n- النقص: ${Math.abs(extraHours)} ساعة`;
+            }
+            
+            // Scroll to result smoothly
+            resArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
 
-      box.className = 'result-box';
-      const pct = Math.min((diffH / REQUIRED) * 100, 100).toFixed(0);
-      fill.style.width = '0%';
-      plbl.textContent = pct + '%';
+        function resetForm() {
+            document.getElementById('start-date').value = '';
+            document.getElementById('end-date').value = '';
+            document.getElementById('result-area').style.display = 'none';
+            document.getElementById('prog-bar').style.width = '0';
+            document.getElementById('diff-preview').style.display = 'none';
+        }
 
-      if (diffH >= REQUIRED) {
-        box.classList.add('pass');
-        icon.textContent = '✅';
-        text.textContent = 'المشروع مستوفٍ للشرط';
-        msg.innerHTML   = `✔ الفارق الزمني <strong>${totalH} ساعة</strong> — يتجاوز الحد المطلوب بـ <strong>${(diffH - REQUIRED).toFixed(1)} ساعة</strong>. يمكن اعتماد المشروع للتنفيذ.`;
-        lastResult = `نتيجة المشروع: مستوفٍ للشرط ✅\nإجمالي الساعات: ${totalH} ساعة\nالأيام: ${days} يوم\nالساعات الزائدة: +${(diffH - REQUIRED).toFixed(1)} ساعة`;
-      } else if (diffH >= REQUIRED * 0.85) {
-        box.classList.add('warn');
-        icon.textContent = '⚠️';
-        text.textContent = 'قريب من الحد المطلوب';
-        msg.innerHTML   = `⚠ ينقصك <strong>${(REQUIRED - diffH).toFixed(1)} ساعة</strong> فقط لاستيفاء الشرط. يُنصح بتأجيل موعد التنفيذ قليلاً.`;
-        lastResult = `نتيجة المشروع: قريب من الحد ⚠️\nإجمالي الساعات: ${totalH} ساعة\nالساعات الناقصة: ${(REQUIRED - diffH).toFixed(1)} ساعة`;
-      } else {
-        box.classList.add('fail');
-        icon.textContent = '❌';
-        text.textContent = 'لا يستوفي الشرط';
-        msg.innerHTML   = `✖ الفارق الزمني <strong>${totalH} ساعة</strong> فقط. تحتاج إلى <strong>${(REQUIRED - diffH).toFixed(1)} ساعة إضافية</strong> للوصول للحد المطلوب.`;
-        lastResult = `نتيجة المشروع: لا يستوفي الشرط ❌\nإجمالي الساعات: ${totalH} ساعة\nالساعات الناقصة: ${(REQUIRED - diffH).toFixed(1)} ساعة`;
-      }
+        function copyResult() {
+            if(!lastOutput) return;
+            navigator.clipboard.writeText(lastOutput).then(() => {
+                const btn = document.querySelector('.btn-copy');
+                const originalText = btn.textContent;
+                btn.textContent = 'تم النسخ 👍';
+                btn.style.background = '#4ade80';
+                btn.style.color = '#000';
+                
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '';
+                    btn.style.color = '';
+                }, 2000);
+            });
+        }
 
-      document.getElementById('result').style.display = 'block';
-      setTimeout(() => { fill.style.width = pct + '%'; }, 100);
-    }, 600);
-  }
+        // --- Simple Confetti Effect (Lightweight) ---
+        function launchConfetti() {
+            const canvas = document.getElementById('confetti');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            const particles = [];
+            const colors = ['#6366f1', '#10b981', '#f59e0b', '#ec4899'];
+            
+            for(let i=0; i<100; i++) {
+                particles.push({
+                    x: canvas.width / 2,
+                    y: canvas.height / 2,
+                    vx: (Math.random() - 0.5) * 15,
+                    vy: (Math.random() - 0.5) * 15 - 5,
+                    c: colors[Math.floor(Math.random()*colors.length)],
+                    s: Math.random() * 8 + 4
+                });
+            }
 
-  function reset() {
-    document.getElementById('approvalDate').value = '';
-    document.getElementById('executionDate').value = '';
-    document.getElementById('result').style.display = 'none';
-    document.getElementById('calcBtn').style.background = 'linear-gradient(135deg,#6c63ff,#4e46e5)';
-  }
-
-  function copyResult() {
-    if (!lastResult) return;
-    navigator.clipboard.writeText(lastResult).then(() => {
-      const btn = document.querySelector('.btn-copy');
-      btn.textContent = '✅ تم النسخ!';
-      setTimeout(() => btn.textContent = '📋 نسخ النتيجة', 2000);
-    });
-  }
-</script>
-
+            function animate() {
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                let active = false;
+                particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.5; // gravity
+                    p.s *= 0.96; // shrink
+                    
+                    if(p.s > 0.5 && p.y < canvas.height) {
+                        ctx.fillStyle = p.c;
+                        ctx.fillRect(p.x, p.y, p.s, p.s);
+                        active = true;
+                    }
+                });
+                if(active) requestAnimationFrame(animate);
+                else ctx.clearRect(0,0,canvas.width,canvas.height);
+            }
+            animate();
+        }
+    </script>
 </body>
 </html>
