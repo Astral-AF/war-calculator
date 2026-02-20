@@ -1,508 +1,956 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>حاسبة المشاريع - مركز التحكم</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap');
+import { useState, useEffect } from “react”;
 
-        :root {
-            --primary: #6366f1;
-            --primary-glow: rgba(99, 102, 241, 0.4);
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --bg-dark: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --border: rgba(255, 255, 255, 0.1);
-        }
+// ========== MOCK DATA ==========
+const MOCK_FEEDERS = [
+{ id: “f1”, name: “B313”, substation: “عرعر ب”, base_subscribers: 710, requires_escalation: false, has_sensitive: false },
+{ id: “f2”, name: “B314”, substation: “عرعر ب”, base_subscribers: 813, requires_escalation: true, has_sensitive: false },
+{ id: “f3”, name: “B315”, substation: “عرعر ب”, base_subscribers: 726, requires_escalation: true, has_sensitive: true },
+{ id: “f4”, name: “B316”, substation: “عرعر ب”, base_subscribers: 993, requires_escalation: true, has_sensitive: false },
+{ id: “f5”, name: “B317”, substation: “عرعر أ”, base_subscribers: 416, requires_escalation: false, has_sensitive: false },
+{ id: “f6”, name: “B318”, substation: “عرعر أ”, base_subscribers: 873, requires_escalation: true, has_sensitive: true },
+{ id: “f7”, name: “B360”, substation: “رفحا ب”, base_subscribers: 837, requires_escalation: true, has_sensitive: false },
+{ id: “f8”, name: “B361”, substation: “رفحا ب”, base_subscribers: 445, requires_escalation: false, has_sensitive: false },
+];
 
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+const MOCK_SENSITIVE = {
+f3: [“إمارة منطقة الحدود الشمالية”, “برج اتصالات التقاطع”],
+f6: [“شركة اتحاد اتصالات موبايلي”, “مركز توزيع”],
+f7: [],
+};
 
-        body {
-            font-family: 'Tajawal', sans-serif;
-            background-color: var(--bg-dark);
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
-            color: #fff;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            overflow-x: hidden;
-        }
+const USERS = {
+dispatchers: [“أحمد العنزي”, “محمد الشمري”, “خالد الرشيدي”, “سعد البلوي”],
+draftsmen: [“عبدالله الحربي”, “فيصل المطيري”],
+};
 
-        /* خلفية النجوم المتحركة */
-        .stars {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: -1;
-            background-image: 
-                radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)),
-                radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
-                radial-gradient(1px 1px at 90px 40px, #fff, rgba(0,0,0,0));
-            background-size: 200px 200px;
-            animation: starsAnim 100s linear infinite;
-            opacity: 0.3;
-        }
-        @keyframes starsAnim { from {transform: translateY(0);} to {transform: translateY(-1000px);} }
+const TASK_TYPES = {
+install: “تركيب معدة جديدة”,
+replace: “استبدال معدة”,
+remove: “إزالة معدة”,
+fix_terminals: “تصحيح أطراف”,
+change_route: “تغيير مسار تغذية”,
+};
 
-        /* الحاوية الرئيسية */
-        .container {
-            width: 100%;
-            max-width: 480px;
-            position: relative;
-            z-index: 10;
-        }
+const STATUS_LABELS = {
+open: “مفتوحة”,
+received: “استُلمت”,
+zenon_done: “زينون ✓”,
+microstation_done: “مايكروستيشن ✓”,
+reviewed: “مراجعة”,
+closed: “مغلقة”,
+};
 
-        /* الهيدر */
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            animation: fadeInDown 0.8s ease-out;
-        }
-        .logo-badge {
-            width: 60px; height: 60px;
-            background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(16,185,129,0.2));
-            border-radius: 50%;
-            margin: 0 auto 15px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 28px;
-            border: 1px solid var(--border);
-            box-shadow: 0 0 20px var(--primary-glow);
-            animation: pulse 2s infinite ease-in-out;
-        }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(99,102,241,0.4); } 70% { box-shadow: 0 0 0 15px rgba(99,102,241,0); } 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0); } }
+const STATUS_COLORS = {
+open: “#EF4444”,
+received: “#F59E0B”,
+zenon_done: “#3B82F6”,
+microstation_done: “#8B5CF6”,
+reviewed: “#10B981”,
+closed: “#64748B”,
+};
 
-        .header h1 { font-size: 26px; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.5px; }
-        .header p { color: rgba(255,255,255,0.6); font-size: 14px; margin-bottom: 4px; }
-        .header .sub-badge {
-            display: inline-flex; align-items: center; gap: 6px;
-            background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3);
-            border-radius: 20px; padding: 4px 12px;
-            color: #a5b4fc; font-size: 12px; font-weight: 700;
-            margin-top: 8px;
-        }
+// ========== HELPERS ==========
+function fmtDuration(ms) {
+const s = Math.floor(ms / 1000);
+const h = Math.floor(s / 3600);
+const m = Math.floor((s % 3600) / 60);
+const sec = s % 60;
+if (h > 0) return `${h}:${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
+return `${m}:${String(sec).padStart(2,"0")}`;
+}
 
-        /* البطاقة الرئيسية - تأثير زجاجي */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 24px 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.05);
-            animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-        }
+function fmtTime(d) {
+return new Date(d).toLocaleTimeString(“ar-SA”, { hour: “2-digit”, minute: “2-digit” });
+}
 
-        /* الحقول */
-        .input-group { margin-bottom: 18px; position: relative; }
-        .input-group label {
-            display: flex; align-items: center; gap: 8px;
-            color: rgba(255,255,255,0.8); font-size: 13px; font-weight: 700;
-            margin-bottom: 10px;
-        }
-        .icon-box {
-            width: 24px; height: 24px; background: rgba(255,255,255,0.1);
-            border-radius: 6px; display: flex; align-items: center; justify-content: center;
-            font-size: 12px;
-        }
+function timerColor(ms, warnMs = 4*3600*1000, dangerMs = 24*3600*1000) {
+if (ms > dangerMs) return “#EF4444”;
+if (ms > warnMs) return “#F59E0B”;
+return “#10B981”;
+}
 
-        input[type="datetime-local"] {
-            width: 100%;
-            padding: 16px;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            color: #fff;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 16px;
-            font-weight: 500;
-            outline: none;
-            transition: all 0.3s;
-            appearance: none;
-        }
-        input[type="datetime-local"]:focus {
-            background: rgba(99,102,241,0.1);
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(99,102,241,0.15);
-        }
-        
-        /* أيقونة التقويم */
-        input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-            filter: invert(1); opacity: 0.6; cursor: pointer;
-            transition: 0.2s;
-        }
-        input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator { opacity: 1; transform: scale(1.1); }
+function taskTimerColor(createdAt) {
+const days = (Date.now() - createdAt) / 86400000;
+if (days > 3) return “#EF4444”;
+if (days > 1) return “#F59E0B”;
+return “#10B981”;
+}
 
-        /* سهم الاتجاه */
-        .direction-arrow {
-            text-align: center; margin: 10px 0; color: rgba(255,255,255,0.2); font-size: 18px;
-            animation: bounce 2s infinite;
-        }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
+// ========== LIVE TIMER ==========
+function LiveTimer({ startTime, warnMs, dangerMs, style = {} }) {
+const [now, setNow] = useState(Date.now());
+useEffect(() => {
+const t = setInterval(() => setNow(Date.now()), 1000);
+return () => clearInterval(t);
+}, []);
+const ms = now - startTime;
+const col = timerColor(ms, warnMs, dangerMs);
+return <span style={{ color: col, fontFamily: “monospace”, fontWeight: 700, …style }}>{fmtDuration(ms)}</span>;
+}
 
-        /* زر الحساب */
-        .btn-calc {
-            width: 100%;
-            padding: 18px;
-            background: linear-gradient(135deg, var(--primary), #4338ca);
-            border: none; border-radius: 16px;
-            color: #fff; font-size: 18px; font-weight: 800; font-family: 'Tajawal', sans-serif;
-            cursor: pointer;
-            box-shadow: 0 8px 25px rgba(99,102,241,0.4);
-            position: relative; overflow: hidden;
-            transition: transform 0.1s, box-shadow 0.2s;
-            margin-top: 10px;
-        }
-        .btn-calc::after {
-            content: ''; position: absolute; inset: 0;
-            background: linear-gradient(rgba(255,255,255,0.2), transparent);
-            opacity: 0; transition: opacity 0.3s;
-        }
-        .btn-calc:active { transform: scale(0.97); }
-        .btn-calc:hover::after { opacity: 1; }
+// ========== MAIN APP ==========
+export default function App() {
+const [page, setPage] = useState(“dashboard”);
+const [tasks, setTasks] = useState([
+{ id: “t1”, type: “fix_terminals”, device_no: “403061”, feeder_id: “f1”, substation: “عرعر ب”, status: “zenon_done”, created_by: “أحمد العنزي”, assigned_to: “عبدالله الحربي”, device_type: “3way”, ring1: “B313”, ring2: “B314”, created_at: Date.now() - 2*86400000, notes: “الطرف الأيمن معكوس” },
+{ id: “t2”, type: “install”, device_no: “403100”, feeder_id: “f3”, substation: “عرعر ب”, status: “open”, created_by: “محمد الشمري”, assigned_to: “فيصل المطيري”, created_at: Date.now() - 4*86400000, notes: “” },
+{ id: “t3”, type: “replace”, device_no: “403077”, feeder_id: “f5”, substation: “عرعر أ”, status: “closed”, created_by: “خالد الرشيدي”, assigned_to: “عبدالله الحربي”, created_at: Date.now() - 7*86400000, notes: “” },
+{ id: “t4”, type: “fix_terminals”, device_no: “403088”, feeder_id: “f6”, substation: “عرعر أ”, status: “received”, created_by: “سعد البلوي”, assigned_to: “فيصل المطيري”, device_type: “4way”, ring1: “B318”, ring2: “B360”, ring3: “B361”, ring4: “”, created_at: Date.now() - 86400000, notes: “” },
+]);
+const [transfers, setTransfers] = useState([
+{ id: “tr1”, type: “emergency”, from_feeder_id: “f1”, to_feeder_id: “f2”, from_device: “403050”, to_device: “403065”, count: 300, reason: “عطل على الكابل”, started_at: Date.now() - 2.5*3600*1000 },
+]);
+const [outages, setOutages] = useState([
+{ id: “o1”, feeder_id: “f7”, started_at: Date.now() - 1.4*3600*1000, ended_at: null, affected_areas: “القدس، الفيصلية”, notes: “N.O 315028 RTU faulty”, phases: [{ id:“p1”, phase_number:1, restored_at: Date.now()-1.2*3600*1000, restored_count:231, method:“auto” }], notifications: [“الأزمات والكوارث”,“التشغيل”] },
+]);
+const [showNewTask, setShowNewTask] = useState(false);
+const [showNewTransfer, setShowNewTransfer] = useState(false);
+const [showNewOutage, setShowNewOutage] = useState(false);
+const [selectedTask, setSelectedTask] = useState(null);
+const [selectedOutage, setSelectedOutage] = useState(null);
+const [now, setNow] = useState(Date.now());
 
-        /* منطقة النتائج */
-        .result-modal {
-            margin-top: 25px;
-            display: none; /* مخفي افتراضياً */
-            animation: reveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
+useEffect(() => {
+const t = setInterval(() => setNow(Date.now()), 1000);
+return () => clearInterval(t);
+}, []);
 
-        .result-inner {
-            background: rgba(15, 23, 42, 0.6);
-            border-radius: 20px;
-            padding: 24px 20px;
-            border: 1px solid rgba(255,255,255,0.05);
-            text-align: center;
-        }
-        
-        /* حالات النتيجة */
-        .result-inner.pass { border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.08); }
-        .result-inner.fail { border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.08); }
-        .result-inner.warn { border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.08); }
+// Live subscriber calc
+function liveCount(feederId) {
+const f = MOCK_FEEDERS.find(x => x.id === feederId);
+if (!f) return 0;
+let count = f.base_subscribers;
+transfers.filter(t => !t.ended_at).forEach(t => {
+if (t.to_feeder_id === feederId) count += t.count;
+if (t.from_feeder_id === feederId) count -= t.count;
+});
+return count;
+}
 
-        .status-icon { font-size: 48px; margin-bottom: 10px; display: block; }
-        
-        .main-msg { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
-        .sub-msg { font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.6; margin-bottom: 20px; }
-        
-        /* عداد الساعات */
-        .counter-box {
-            display: flex; gap: 10px; margin-bottom: 20px;
-        }
-        .counter-item {
-            flex: 1;
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px; padding: 12px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .counter-val { font-size: 24px; font-weight: 900; line-height: 1; }
-        .counter-lbl { font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 600; margin-top: 4px; }
+function needsEscalation(feederId) {
+return liveCount(feederId) >= 500 || (MOCK_SENSITIVE[feederId] || []).length > 0;
+}
 
-        /* شريط التقدم */
-        .progress-cont {
-            height: 10px; background: rgba(255,255,255,0.1); border-radius: 20px; overflow: hidden; margin-top: 10px;
-        }
-        .progress-bar {
-            height: 100%; width: 0; transition: width 1s ease-out; border-radius: 20px;
-        }
-        .pass .progress-bar { background: var(--success); box-shadow: 0 0 10px var(--success); }
-        .fail .progress-bar { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
-        .warn .progress-bar { background: var(--warning); box-shadow: 0 0 10px var(--warning); }
+// Alerts
+const alerts = [];
+outages.filter(o => !o.ended_at).forEach(o => {
+const f = MOCK_FEEDERS.find(x => x.id === o.feeder_id);
+alerts.push({ type: “outage”, color: “#EF4444”, icon: “⚡”, label: `انقطاع نشط — ${f?.name} (${f?.substation})`, startTime: o.started_at, id: o.id });
+});
+transfers.filter(t => !t.ended_at && (now - t.started_at) > 24*3600*1000).forEach(t => {
+const ff = MOCK_FEEDERS.find(x => x.id === t.from_feeder_id);
+const tf = MOCK_FEEDERS.find(x => x.id === t.to_feeder_id);
+alerts.push({ type: “transfer24”, color: “#F59E0B”, icon: “🔄”, label: `تحويل تجاوز 24 ساعة — ${ff?.name} ← ${tf?.name}`, startTime: t.started_at, id: t.id });
+});
+tasks.filter(t => t.status !== “closed” && (now - t.created_at) > 3*86400000).forEach(t => {
+alerts.push({ type: “task”, color: “#F59E0B”, icon: “📋”, label: `مهمة متأخرة — ${TASK_TYPES[t.type]} (${t.device_no})`, startTime: t.created_at, id: t.id });
+});
 
-        /* أزرار الاجراءات */
-        .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .btn-act {
-            padding: 12px; border-radius: 12px; font-weight: 700; font-size: 13px; font-family: inherit; cursor: pointer; border: none; transition: 0.2s;
-        }
-        .btn-reset { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.6); }
-        .btn-reset:hover { background: rgba(255,255,255,0.1); color: #fff; }
-        .btn-copy { background: rgba(99,102,241,0.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.2); }
-        .btn-copy:hover { background: rgba(99,102,241,0.25); color: #fff; }
+const activeTransfers = transfers.filter(t => !t.ended_at);
+const activeOutages = outages.filter(o => !o.ended_at);
+const openTasks = tasks.filter(t => t.status !== “closed”);
 
-        /* تذييل */
-        .footer { text-align: center; margin-top: 30px; font-size: 12px; color: rgba(255,255,255,0.2); }
+const navItems = [
+{ key: “dashboard”, icon: “🏠”, label: “الداشبورد” },
+{ key: “tasks”, icon: “📋”, label: “المهام” },
+{ key: “outages”, icon: “⚡”, label: “الانقطاعات” },
+{ key: “transfers”, icon: “🔄”, label: “التحويلات” },
+{ key: “network”, icon: “🗺️”, label: “الشبكة” },
+];
 
-        /* Keyframes */
-        @keyframes fadeInDown { from { opacity:0; transform: translateY(-20px); } to { opacity:1; transform: translateY(0); } }
-        @keyframes slideUp { from { opacity:0; transform: translateY(40px) scale(0.95); } to { opacity:1; transform: translateY(0) scale(1); } }
-        @keyframes reveal { from { opacity:0; height:0; transform: scale(0.9); } to { opacity:1; height:auto; transform: scale(1); } }
+const styles = {
+app: { display:“flex”, height:“100vh”, background:”#0F172A”, color:”#F1F5F9”, fontFamily:“Tajawal, Arial, sans-serif”, direction:“rtl”, overflow:“hidden” },
+sidebar: { width:200, background:”#0A1628”, borderLeft:“1px solid #1E293B”, display:“flex”, flexDirection:“column”, padding:“16px 0” },
+logo: { padding:“0 16px 20px”, borderBottom:“1px solid #1E293B”, marginBottom:8 },
+logoText: { fontSize:13, fontWeight:700, color:”#3B82F6”, lineHeight:1.4 },
+navItem: (active) => ({ display:“flex”, alignItems:“center”, gap:10, padding:“10px 16px”, cursor:“pointer”, borderRadius:8, margin:“2px 8px”, background: active ? “#1E3A5F” : “transparent”, color: active ? “#3B82F6” : “#94A3B8”, fontSize:13, fontWeight: active ? 700 : 400, transition:“all 0.2s” }),
+main: { flex:1, overflow:“auto”, padding:20 },
+header: { fontSize:22, fontWeight:700, marginBottom:20, color:”#F1F5F9” },
+card: { background:”#1E293B”, borderRadius:12, padding:16, marginBottom:12 },
+statsRow: { display:“grid”, gridTemplateColumns:“repeat(4,1fr)”, gap:12, marginBottom:20 },
+statCard: (col) => ({ background:”#1E293B”, borderRadius:12, padding:16, borderTop:`3px solid ${col}` }),
+statNum: { fontSize:32, fontWeight:700, marginBottom:4 },
+statLabel: { fontSize:12, color:”#94A3B8” },
+alertRow: { display:“flex”, alignItems:“center”, gap:12, padding:“10px 14px”, background:”#0F172A”, borderRadius:8, marginBottom:8 },
+badge: (col) => ({ background:col+“22”, color:col, padding:“2px 10px”, borderRadius:20, fontSize:11, fontWeight:700, whiteSpace:“nowrap” }),
+btn: (col=”#3B82F6”) => ({ background:col, color:”#fff”, border:“none”, borderRadius:8, padding:“8px 18px”, cursor:“pointer”, fontSize:13, fontWeight:700 }),
+btnSm: (col=”#3B82F6”) => ({ background:col+“22”, color:col, border:`1px solid ${col}44`, borderRadius:6, padding:“4px 12px”, cursor:“pointer”, fontSize:12, fontWeight:600 }),
+input: { background:”#0F172A”, border:“1px solid #334155”, borderRadius:8, padding:“8px 12px”, color:”#F1F5F9”, fontSize:13, width:“100%”, boxSizing:“border-box” },
+label: { fontSize:12, color:”#94A3B8”, marginBottom:4, display:“block” },
+select: { background:”#0F172A”, border:“1px solid #334155”, borderRadius:8, padding:“8px 12px”, color:”#F1F5F9”, fontSize:13, width:“100%”, boxSizing:“border-box” },
+modal: { position:“fixed”, inset:0, background:”#000000aa”, display:“flex”, alignItems:“center”, justifyContent:“center”, zIndex:100 },
+modalBox: { background:”#1E293B”, borderRadius:16, padding:24, width:“min(90vw,520px)”, maxHeight:“85vh”, overflowY:“auto” },
+tag: (col) => ({ display:“inline-block”, background:col+“22”, color:col, borderRadius:6, padding:“2px 8px”, fontSize:11, fontWeight:700 }),
+divider: { borderBottom:“1px solid #334155”, margin:“12px 0” },
+timelineStep: (done) => ({ display:“flex”, alignItems:“flex-start”, gap:12, marginBottom:12, opacity: done ? 1 : 0.4 }),
+timelineDot: (col) => ({ width:12, height:12, borderRadius:“50%”, background:col, marginTop:3, flexShrink:0 }),
+ringBox: { background:”#0F172A”, border:“1px solid #3B82F6”, borderRadius:8, padding:“8px 12px”, textAlign:“center”, minWidth:90 },
+ringLabel: { fontSize:10, color:”#64748B”, marginBottom:4 },
+ringValue: { fontSize:13, fontWeight:700, color:”#3B82F6” },
+feederCard: (esc) => ({ background:”#1E293B”, borderRadius:10, padding:12, borderRight:`3px solid ${esc ? "#EF4444" : "#334155"}`, marginBottom:8 }),
+};
 
-        /* كانفاس الاحتفال */
-        #confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
+// ========== PAGES ==========
 
-        /* Live Preview Tag */
-        .live-preview {
-            position: absolute; right: 0; top: 0;
-            background: var(--primary); color: #fff;
-            font-size: 10px; padding: 2px 6px; border-radius: 4px;
-            display: none; font-weight: 700;
-        }
-    </style>
-</head>
-<body>
+function Dashboard() {
+return (
+<div>
+<div style={styles.header}>لوحة التحكم</div>
 
-    <div class="stars"></div>
-    <canvas id="confetti"></canvas>
-
-    <div class="container">
-        
-        <div class="header">
-            <div class="logo-badge">🛡️</div>
-            <h1>مركز التحكم</h1>
-            <p>نظام إدارة اعتماد المشاريع - الحدود الشمالية</p>
-            <div class="sub-badge">⏱ الحد الأدنى: 60 ساعة</div>
+```
+    {/* Stats */}
+    <div style={styles.statsRow}>
+      {[
+        { label:"المهام المفتوحة", val: openTasks.length, col:"#3B82F6" },
+        { label:"التحويلات النشطة", val: activeTransfers.length, col:"#F59E0B" },
+        { label:"الانقطاعات النشطة", val: activeOutages.length, col:"#EF4444" },
+        { label:"المهام المغلقة", val: tasks.filter(t=>t.status==="closed").length, col:"#10B981" },
+      ].map((s,i) => (
+        <div key={i} style={styles.statCard(s.col)}>
+          <div style={{...styles.statNum, color:s.col}}>{s.val}</div>
+          <div style={styles.statLabel}>{s.label}</div>
         </div>
-
-        <div class="glass-card">
-            
-            <div class="input-group">
-                <label>
-                    <div class="icon-box">📅</div>
-                    تاريخ ووقت الاعتماد
-                </label>
-                <input type="datetime-local" id="start-date">
-            </div>
-
-            <div class="direction-arrow">⬇</div>
-
-            <div class="input-group">
-                <label>
-                    <div class="icon-box">🚀</div>
-                    تاريخ ووقت التنفيذ
-                    <span id="diff-preview" class="live-preview">0 س</span>
-                </label>
-                <input type="datetime-local" id="end-date">
-            </div>
-
-            <button class="btn-calc" onclick="calculateTime()" id="calc-btn">
-                <span>⚡ احسب الفارق الزمني</span>
-            </button>
-
-            <div class="result-modal" id="result-area">
-                <div class="result-inner" id="result-box">
-                    <span class="status-icon" id="res-icon">✅</span>
-                    <div class="main-msg" id="res-title">المشروع جاهز</div>
-                    <div class="sub-msg" id="res-desc">تم استيفاء الشروط بنجاح</div>
-
-                    <div class="counter-box">
-                        <div class="counter-item">
-                            <div class="counter-val" id="val-hours">0</div>
-                            <div class="counter-lbl">ساعة كاملة</div>
-                        </div>
-                        <div class="counter-item">
-                            <div class="counter-val" id="val-days">0</div>
-                            <div class="counter-lbl">عدد الأيام</div>
-                        </div>
-                        <div class="counter-item">
-                            <div class="counter-val" id="val-extra">0</div>
-                            <div class="counter-lbl">فرق (+/-)</div>
-                        </div>
-                    </div>
-
-                    <div style="text-align: right; font-size: 11px; margin-bottom: 4px; color:rgba(255,255,255,0.4)">نسبة الإنجاز</div>
-                    <div class="progress-cont">
-                        <div class="progress-bar" id="prog-bar"></div>
-                    </div>
-
-                    <div class="actions">
-                        <button class="btn-reset" onclick="resetForm()">🔄 جديد</button>
-                        <button class="btn-copy" onclick="copyResult()">📋 نسخ النتيجة</button>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <div class="footer">
-            © 2025 جميع الحقوق محفوظة لمركز التحكم
-        </div>
+      ))}
     </div>
 
-    <script>
-        // إعدادات أساسية
-        const REQUIRED_HOURS = 60;
-        let lastOutput = "";
-        
-        // استماع للتغييرات (Live Preview)
-        const inputs = document.querySelectorAll('input');
-        inputs.forEach(inp => {
-            inp.addEventListener('input', () => {
-                const s = new Date(document.getElementById('start-date').value);
-                const e = new Date(document.getElementById('end-date').value);
-                const prev = document.getElementById('diff-preview');
-                
-                if(s && e && !isNaN(s) && !isNaN(e)) {
-                    const diff = (e - s) / 3600000;
-                    if(diff > 0) {
-                        prev.style.display = 'inline-block';
-                        prev.textContent = diff.toFixed(1) + ' س';
-                        prev.style.background = diff >= REQUIRED_HOURS ? '#10b981' : '#ef4444';
-                    }
-                }
-            });
-        });
+    {/* Alerts */}
+    <div style={styles.card}>
+      <div style={{fontSize:14, fontWeight:700, marginBottom:12, color:"#94A3B8"}}>🔔 التنبيهات النشطة</div>
+      {alerts.length === 0 && <div style={{color:"#64748B", fontSize:13}}>لا توجد تنبيهات حالياً ✅</div>}
+      {alerts.map((a, i) => (
+        <div key={i} style={styles.alertRow}>
+          <span style={{fontSize:18}}>{a.icon}</span>
+          <span style={{flex:1, fontSize:13}}>{a.label}</span>
+          <LiveTimer startTime={a.startTime} warnMs={4*3600*1000} dangerMs={24*3600*1000} />
+        </div>
+      ))}
+    </div>
 
-        function calculateTime() {
-            // Haptic Feedback (Vibration)
-            if(navigator.vibrate) navigator.vibrate(50);
+    {/* Active Outages */}
+    {activeOutages.length > 0 && (
+      <div style={styles.card}>
+        <div style={{fontSize:14, fontWeight:700, marginBottom:12, color:"#EF4444"}}>⚡ انقطاعات نشطة</div>
+        {activeOutages.map(o => {
+          const f = MOCK_FEEDERS.find(x => x.id === o.feeder_id);
+          const cnt = liveCount(o.feeder_id);
+          const esc = needsEscalation(o.feeder_id);
+          return (
+            <div key={o.id} style={{...styles.alertRow, background:"#1E0A0A", borderRadius:10, padding:14}}>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:700}}>{f?.name} — {f?.substation}</div>
+                <div style={{fontSize:12, color:"#94A3B8", marginTop:2}}>المتأثرون: {cnt} مشترك</div>
+                {esc && <div style={{...styles.tag("#EF4444"), marginTop:4}}>⚠️ يجب التصعيد لمركز الأزمات</div>}
+              </div>
+              <LiveTimer startTime={o.started_at} warnMs={3600*1000} dangerMs={4*3600*1000} />
+            </div>
+          );
+        })}
+      </div>
+    )}
 
-            const startVal = document.getElementById('start-date').value;
-            const endVal = document.getElementById('end-date').value;
+    {/* Active Transfers */}
+    {activeTransfers.length > 0 && (
+      <div style={styles.card}>
+        <div style={{fontSize:14, fontWeight:700, marginBottom:12, color:"#F59E0B"}}>🔄 تحويلات نشطة</div>
+        {activeTransfers.map(t => {
+          const ff = MOCK_FEEDERS.find(x => x.id === t.from_feeder_id);
+          const tf = MOCK_FEEDERS.find(x => x.id === t.to_feeder_id);
+          return (
+            <div key={t.id} style={{...styles.alertRow, background:"#1A1400", borderRadius:10, padding:14}}>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:700}}>{ff?.name} ← {tf?.name}</div>
+                <div style={{fontSize:12, color:"#94A3B8", marginTop:2}}>
+                  {t.type === "emergency" ? "تحويل طارئ" : "مناقلة أحمال"} · {t.count} مشترك
+                </div>
+              </div>
+              <LiveTimer startTime={t.started_at} warnMs={4*3600*1000} dangerMs={24*3600*1000} />
+            </div>
+          );
+        })}
+      </div>
+    )}
 
-            if (!startVal || !endVal) {
-                alert("⚠️ الرجاء تعبئة التواريخ أولاً");
-                return;
-            }
+    {/* Recent Tasks */}
+    <div style={styles.card}>
+      <div style={{fontSize:14, fontWeight:700, marginBottom:12, color:"#94A3B8"}}>📋 آخر المهام</div>
+      {tasks.slice(0,3).map(t => (
+        <div key={t.id} style={{display:"flex", alignItems:"center", gap:10, padding:"8px 0", borderBottom:"1px solid #334155"}}>
+          <span style={styles.tag(STATUS_COLORS[t.status])}>{STATUS_LABELS[t.status]}</span>
+          <span style={{flex:1, fontSize:13}}>{TASK_TYPES[t.type]} — {t.device_no}</span>
+          <span style={{fontSize:11, color: taskTimerColor(t.created_at), fontFamily:"monospace"}}>
+            {Math.floor((now - t.created_at)/86400000)} يوم
+          </span>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+```
 
-            const start = new Date(startVal);
-            const end = new Date(endVal);
+}
 
-            if (end <= start) {
-                alert("❌ تاريخ التنفيذ يجب أن يكون بعد تاريخ الاعتماد");
-                return;
-            }
+function TasksPage() {
+const [filter, setFilter] = useState(“all”);
+const filtered = filter === “all” ? tasks : filter === “open” ? tasks.filter(t=>t.status!==“closed”) : tasks.filter(t=>t.status===“closed”);
 
-            // Calculation
-            const diffMs = end - start;
-            const totalHours = diffMs / (1000 * 60 * 60);
-            const days = Math.floor(totalHours / 24);
-            const extraHours = (totalHours - REQUIRED_HOURS).toFixed(1);
+```
+const STEPS = ["open","received","zenon_done","microstation_done","reviewed","closed"];
 
-            // UI Elements
-            const resArea = document.getElementById('result-area');
-            const resBox = document.getElementById('result-box');
-            const icon = document.getElementById('res-icon');
-            const title = document.getElementById('res-title');
-            const desc = document.getElementById('res-desc');
-            const bar = document.getElementById('prog-bar');
+function advanceTask(taskId) {
+  setTasks(prev => prev.map(t => {
+    if (t.id !== taskId) return t;
+    const idx = STEPS.indexOf(t.status);
+    if (idx < STEPS.length-1) return {...t, status: STEPS[idx+1]};
+    return t;
+  }));
+}
 
-            // Set Values
-            document.getElementById('val-hours').textContent = Math.floor(totalHours);
-            document.getElementById('val-days').textContent = days;
-            document.getElementById('val-extra').textContent = (totalHours >= REQUIRED_HOURS ? '+' : '') + extraHours;
+return (
+  <div>
+    <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20}}>
+      <div style={styles.header}>إدارة المهام</div>
+      <button style={styles.btn()} onClick={() => setShowNewTask(true)}>+ مهمة جديدة</button>
+    </div>
 
-            // Reset Classes
-            resBox.className = 'result-inner';
-            resArea.style.display = 'block';
+    <div style={{display:"flex", gap:8, marginBottom:16}}>
+      {[["all","الكل"],["open","المفتوحة"],["closed","المغلقة"]].map(([k,l]) => (
+        <button key={k} style={styles.btnSm(filter===k ? "#3B82F6" : "#64748B")} onClick={() => setFilter(k)}>{l}</button>
+      ))}
+    </div>
 
-            // Logic Tree
-            let percentage = (totalHours / REQUIRED_HOURS) * 100;
-            if(percentage > 100) percentage = 100;
+    {filtered.map(t => {
+      const f = MOCK_FEEDERS.find(x => x.id === t.feeder_id);
+      const stepIdx = STEPS.indexOf(t.status);
+      return (
+        <div key={t.id} style={styles.card}>
+          <div style={{display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:10}}>
+            <div>
+              <span style={styles.tag(STATUS_COLORS[t.status])}>{STATUS_LABELS[t.status]}</span>
+              <span style={{...styles.tag("#64748B"), marginRight:6}}>{TASK_TYPES[t.type]}</span>
+              <div style={{fontSize:15, fontWeight:700, marginTop:6}}>{t.device_no} — {f?.name} ({t.substation})</div>
+            </div>
+            <span style={{fontSize:11, color: taskTimerColor(t.created_at), fontFamily:"monospace"}}>
+              {Math.floor((now - t.created_at)/86400000)} يوم
+            </span>
+          </div>
 
-            setTimeout(() => {
-                bar.style.width = percentage + '%';
-            }, 100);
+          {/* Timeline */}
+          <div style={{display:"flex", gap:4, marginBottom:10, flexWrap:"wrap"}}>
+            {STEPS.map((s,i) => (
+              <div key={s} style={{display:"flex", alignItems:"center", gap:4}}>
+                <div style={{padding:"3px 8px", borderRadius:6, fontSize:11, fontWeight:600,
+                  background: i <= stepIdx ? STATUS_COLORS[s]+"33" : "#0F172A",
+                  color: i <= stepIdx ? STATUS_COLORS[s] : "#475569",
+                  border: `1px solid ${i <= stepIdx ? STATUS_COLORS[s]+"66" : "#334155"}`
+                }}>{STATUS_LABELS[s]}</div>
+                {i < STEPS.length-1 && <span style={{color:"#334155", fontSize:10}}>←</span>}
+              </div>
+            ))}
+          </div>
 
-            if (totalHours >= REQUIRED_HOURS) {
-                // Success
-                resBox.classList.add('pass');
-                icon.textContent = '🎉';
-                title.textContent = 'مستوفٍ للشرط';
-                title.style.color = '#4ade80';
-                desc.innerHTML = `يتجاوز الحد الأدنى بـ <b>${extraHours} ساعة</b>. <br>يمكن اعتماد المشروع للتنفيذ.`;
-                launchConfetti();
-                
-                lastOutput = `✅ *نتيجة الاعتماد: مستوفٍ للشروط*\n- الساعات: ${totalHours.toFixed(1)} ساعة\n- الأيام: ${days} يوم\n- الزيادة: +${extraHours} ساعة`;
+          {/* Terminals */}
+          {t.type === "fix_terminals" && t.device_type && (
+            <div style={{marginBottom:10}}>
+              <div style={{fontSize:11, color:"#64748B", marginBottom:6}}>الأطراف:</div>
+              <div style={{display:"flex", alignItems:"center", gap:8, justifyContent:"flex-start"}}>
+                {t.device_type === "3way" ? (
+                  <>
+                    <div style={styles.ringBox}><div style={styles.ringLabel}>Ring 2</div><div style={styles.ringValue}>{t.ring2||"—"}</div></div>
+                    <span style={{color:"#334155"}}>—</span>
+                    <div style={{...styles.ringBox, borderColor:"#F59E0B"}}><div style={styles.ringLabel}>Ring (المعدة)</div><div style={{...styles.ringValue, color:"#F59E0B"}}>{t.device_no}</div></div>
+                    <span style={{color:"#334155"}}>—</span>
+                    <div style={styles.ringBox}><div style={styles.ringLabel}>Ring 1</div><div style={styles.ringValue}>{t.ring1||"—"}</div></div>
+                  </>
+                ) : (
+                  <>
+                    {["ring4","ring3","ring2","ring1"].map((r,i) => (
+                      <div key={r} style={{display:"flex", alignItems:"center", gap:8}}>
+                        <div style={styles.ringBox}><div style={styles.ringLabel}>Ring {4-i}</div><div style={styles.ringValue}>{t[r]||"—"}</div></div>
+                        {i < 3 && <span style={{color:"#334155"}}>—</span>}
+                      </div>
+                    ))}
+                  </>
+                )}
+              </div>
+            </div>
+          )}
 
-            } else if (totalHours >= (REQUIRED_HOURS - 5)) {
-                // Warning
-                resBox.classList.add('warn');
-                icon.textContent = '⚠️';
-                title.textContent = 'قريب جداً';
-                title.style.color = '#fbbf24';
-                desc.innerHTML = `ينقصك فقط <b>${Math.abs(extraHours)} ساعة</b>. <br>يُنصح بتأجيل التنفيذ قليلاً.`;
-                
-                lastOutput = `⚠️ *نتيجة الاعتماد: قريب جداً*\n- الساعات: ${totalHours.toFixed(1)} ساعة\n- النقص: ${Math.abs(extraHours)} ساعة`;
+          <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+            <div style={{fontSize:11, color:"#64748B"}}>
+              المرحّل: {t.created_by} · الرسام: {t.assigned_to}
+              {t.notes ? ` · ${t.notes}` : ""}
+            </div>
+            {t.status !== "closed" && (
+              <button style={styles.btnSm()} onClick={() => advanceTask(t.id)}>
+                {stepIdx === STEPS.length-2 ? "اعتماد وإغلاق ✓" : "تقدّم للمرحلة التالية →"}
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    })}
+  </div>
+);
+```
 
-            } else {
-                // Fail
-                resBox.classList.add('fail');
-                icon.textContent = '⛔';
-                title.textContent = 'غير مستوفٍ';
-                title.style.color = '#f87171';
-                desc.innerHTML = `الفارق الزمني قليل جداً. <br>تحتاج <b>${Math.abs(extraHours)} ساعة إضافية</b>.`;
-                
-                lastOutput = `❌ *نتيجة الاعتماد: غير مستوفٍ*\n- الساعات: ${totalHours.toFixed(1)} ساعة\n- النقص: ${Math.abs(extraHours)} ساعة`;
-            }
-            
-            // Scroll to result smoothly
-            resArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
+}
 
-        function resetForm() {
-            document.getElementById('start-date').value = '';
-            document.getElementById('end-date').value = '';
-            document.getElementById('result-area').style.display = 'none';
-            document.getElementById('prog-bar').style.width = '0';
-            document.getElementById('diff-preview').style.display = 'none';
-        }
+function OutagesPage() {
+const [newPhase, setNewPhase] = useState({ outageId: null, count: “”, method: “auto”, time: “” });
+const [reportOutage, setReportOutage] = useState(null);
 
-        function copyResult() {
-            if(!lastOutput) return;
-            navigator.clipboard.writeText(lastOutput).then(() => {
-                const btn = document.querySelector('.btn-copy');
-                const originalText = btn.textContent;
-                btn.textContent = 'تم النسخ 👍';
-                btn.style.background = '#4ade80';
-                btn.style.color = '#000';
-                
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                    btn.style.background = '';
-                    btn.style.color = '';
-                }, 2000);
-            });
-        }
+```
+function addPhase(outageId) {
+  if (!newPhase.count) return;
+  setOutages(prev => prev.map(o => {
+    if (o.id !== outageId) return o;
+    const phases = [...o.phases, {
+      id: "p" + Date.now(),
+      phase_number: o.phases.length + 1,
+      restored_at: Date.now(),
+      restored_count: parseInt(newPhase.count),
+      method: newPhase.method
+    }];
+    return {...o, phases};
+  }));
+  setNewPhase({ outageId: null, count: "", method: "auto", time: "" });
+}
 
-        // --- Simple Confetti Effect (Lightweight) ---
-        function launchConfetti() {
-            const canvas = document.getElementById('confetti');
-            const ctx = canvas.getContext('2d');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            
-            const particles = [];
-            const colors = ['#6366f1', '#10b981', '#f59e0b', '#ec4899'];
-            
-            for(let i=0; i<100; i++) {
-                particles.push({
-                    x: canvas.width / 2,
-                    y: canvas.height / 2,
-                    vx: (Math.random() - 0.5) * 15,
-                    vy: (Math.random() - 0.5) * 15 - 5,
-                    c: colors[Math.floor(Math.random()*colors.length)],
-                    s: Math.random() * 8 + 4
-                });
-            }
+function closeOutage(id) {
+  setOutages(prev => prev.map(o => o.id === id ? {...o, ended_at: Date.now()} : o));
+}
 
-            function animate() {
-                ctx.clearRect(0,0,canvas.width,canvas.height);
-                let active = false;
-                particles.forEach(p => {
-                    p.x += p.vx;
-                    p.y += p.vy;
-                    p.vy += 0.5; // gravity
-                    p.s *= 0.96; // shrink
-                    
-                    if(p.s > 0.5 && p.y < canvas.height) {
-                        ctx.fillStyle = p.c;
-                        ctx.fillRect(p.x, p.y, p.s, p.s);
-                        active = true;
-                    }
-                });
-                if(active) requestAnimationFrame(animate);
-                else ctx.clearRect(0,0,canvas.width,canvas.height);
-            }
-            animate();
-        }
-    </script>
-</body>
-</html>
+function generateReport(o) {
+  const f = MOCK_FEEDERS.find(x => x.id === o.feeder_id);
+  const sensitives = MOCK_SENSITIVE[o.feeder_id] || [];
+  const phasesText = o.phases.map((p,i) =>
+    `*(${i+1})* الساعة: - ${fmtTime(p.restored_at)} لعدد (${p.restored_count}) مشترك ${p.method==="auto" ? "بالأتمتة" : "بالتشغيل"}`
+  ).join("\n");
+  return `🔸 *بلاغ جديد*\n\n🔸 *إدارة كهرباء: الحدود الشمالية*\n\n🔶انقطاع الخدمة بسبب فقد تغذية عن\n\n• *المكتب: عرعر*\n• *محطة رقم: ${f?.substation}*\n• *مغذي رقم: ${f?.name}*\n• *وقت الانقطاع: ${fmtTime(o.started_at)}*\n• *عدد المتأثرين: ${liveCount(o.feeder_id)}*\n\n🔸 المشتركين الحساسين المتأثرين:\n${sensitives.length > 0 ? sensitives.join("\n") : "لايوجد"}\n\n🔸المناطق المتأثرة:\n${o.affected_areas||"—"}\n\n🔸مراحل الإعادة:\n${phasesText||"لا توجد بعد"}\n${o.ended_at ? "\n(انتهى ✔)" : ""}\n\n🔸الجهات التي تم ابلاغها:\n${o.notifications.map(n=>`• ${n}`).join("\n")}\n\n🔶ملاحظات أخرى:\n${o.notes||"—"}`;
+}
+
+return (
+  <div>
+    <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20}}>
+      <div style={styles.header}>الانقطاعات</div>
+      <button style={styles.btn()} onClick={() => setShowNewOutage(true)}>+ تسجيل انقطاع</button>
+    </div>
+
+    {outages.map(o => {
+      const f = MOCK_FEEDERS.find(x => x.id === o.feeder_id);
+      const cnt = liveCount(o.feeder_id);
+      const esc = needsEscalation(o.feeder_id);
+      const sens = MOCK_SENSITIVE[o.feeder_id] || [];
+      const isOpen = !o.ended_at;
+      const report = generateReport(o);
+
+      return (
+        <div key={o.id} style={{...styles.card, borderRight:`3px solid ${isOpen ? "#EF4444" : "#334155"}`}}>
+          <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:10}}>
+            <div>
+              <span style={styles.tag(isOpen ? "#EF4444" : "#64748B")}>{isOpen ? "نشط" : "منتهي"}</span>
+              <div style={{fontSize:16, fontWeight:700, marginTop:6}}>{f?.name} — {f?.substation}</div>
+              <div style={{fontSize:12, color:"#94A3B8", marginTop:2}}>
+                وقت الانقطاع: {fmtTime(o.started_at)} · المتأثرون: {cnt}
+              </div>
+              {esc && <div style={{...styles.tag("#EF4444"), marginTop:4}}>⚠️ يجب التصعيد — مركز الأزمات</div>}
+              {sens.length > 0 && <div style={{fontSize:11, color:"#F59E0B", marginTop:4}}>مشتركون حساسون: {sens.join("، ")}</div>}
+            </div>
+            {isOpen && <LiveTimer startTime={o.started_at} warnMs={3600*1000} dangerMs={4*3600*1000} style={{fontSize:20}} />}
+          </div>
+
+          {/* Phases */}
+          <div style={styles.divider} />
+          <div style={{fontSize:12, color:"#94A3B8", marginBottom:8}}>مراحل الإعادة:</div>
+          {o.phases.map(p => (
+            <div key={p.id} style={{display:"flex", gap:8, alignItems:"center", fontSize:12, marginBottom:4, color:"#10B981"}}>
+              <span>✓</span>
+              <span>({p.phase_number}) {fmtTime(p.restored_at)} — {p.restored_count} مشترك — {p.method==="auto" ? "أتمتة" : "تشغيل يدوي"}</span>
+            </div>
+          ))}
+          {o.ended_at && <div style={{fontSize:12, color:"#10B981", fontWeight:700}}>(انتهى ✔) {fmtTime(o.ended_at)}</div>}
+
+          {/* Actions */}
+          {isOpen && (
+            <div style={{display:"flex", gap:8, marginTop:10, flexWrap:"wrap"}}>
+              {newPhase.outageId === o.id ? (
+                <div style={{display:"flex", gap:8, alignItems:"center", flex:1}}>
+                  <input placeholder="عدد المشتركين" type="number" style={{...styles.input, width:120}} value={newPhase.count}
+                    onChange={e => setNewPhase(p => ({...p, count: e.target.value}))} />
+                  <select style={{...styles.select, width:130}} value={newPhase.method}
+                    onChange={e => setNewPhase(p => ({...p, method: e.target.value}))}>
+                    <option value="auto">أتمتة</option>
+                    <option value="manual">تشغيل يدوي</option>
+                  </select>
+                  <button style={styles.btnSm("#10B981")} onClick={() => addPhase(o.id)}>إضافة</button>
+                  <button style={styles.btnSm("#64748B")} onClick={() => setNewPhase({outageId:null,count:"",method:"auto"})}>إلغاء</button>
+                </div>
+              ) : (
+                <button style={styles.btnSm()} onClick={() => setNewPhase(p => ({...p, outageId: o.id}))}>+ مرحلة إعادة</button>
+              )}
+              <button style={styles.btnSm("#10B981")} onClick={() => closeOutage(o.id)}>إغلاق الانقطاع ✓</button>
+            </div>
+          )}
+
+          {/* Report */}
+          <div style={styles.divider} />
+          <div style={{background:"#0F172A", borderRadius:8, padding:12, fontSize:11, whiteSpace:"pre-wrap", color:"#94A3B8", maxHeight:160, overflow:"auto", marginBottom:8, fontFamily:"monospace"}}>{report}</div>
+          <button style={styles.btn()} onClick={() => { navigator.clipboard?.writeText(report); }}>
+            📋 نسخ رسالة الواتساب
+          </button>
+        </div>
+      );
+    })}
+  </div>
+);
+```
+
+}
+
+function TransfersPage() {
+function closeTransfer(id) {
+setTransfers(prev => prev.map(t => t.id === id ? {…t, ended_at: Date.now()} : t));
+}
+
+```
+return (
+  <div>
+    <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20}}>
+      <div style={styles.header}>التحويلات المؤقتة</div>
+      <button style={styles.btn()} onClick={() => setShowNewTransfer(true)}>+ تسجيل تحويل</button>
+    </div>
+
+    {transfers.map(t => {
+      const ff = MOCK_FEEDERS.find(x => x.id === t.from_feeder_id);
+      const tf = MOCK_FEEDERS.find(x => x.id === t.to_feeder_id);
+      const isActive = !t.ended_at;
+      const ms = now - t.started_at;
+      const over24 = ms > 24*3600*1000;
+      return (
+        <div key={t.id} style={{...styles.card, borderRight:`3px solid ${isActive ? (over24 ? "#EF4444" : "#F59E0B") : "#334155"}`}}>
+          <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start"}}>
+            <div>
+              <span style={styles.tag(isActive ? "#F59E0B" : "#64748B")}>{isActive ? "نشط" : "منتهي"}</span>
+              <span style={{...styles.tag(t.type==="emergency" ? "#EF4444" : "#3B82F6"), marginRight:6}}>
+                {t.type==="emergency" ? "تحويل طارئ" : "مناقلة أحمال"}
+              </span>
+              {over24 && isActive && <span style={{...styles.tag("#EF4444"), marginRight:6}}>تجاوز 24 ساعة!</span>}
+              <div style={{fontSize:16, fontWeight:700, marginTop:6}}>
+                {ff?.name} ← {tf?.name}
+              </div>
+              <div style={{fontSize:12, color:"#94A3B8", marginTop:2}}>
+                من معدة {t.from_device} إلى {t.to_device} · {t.count} مشترك
+              </div>
+              <div style={{fontSize:12, color:"#64748B", marginTop:2}}>السبب: {t.reason}</div>
+              <div style={{marginTop:8, display:"flex", gap:16, fontSize:12}}>
+                <div>
+                  <span style={{color:"#64748B"}}>{ff?.name} الآن: </span>
+                  <span style={{color:"#F1F5F9", fontWeight:700}}>{liveCount(t.from_feeder_id)}</span>
+                </div>
+                <div>
+                  <span style={{color:"#64748B"}}>{tf?.name} الآن: </span>
+                  <span style={{color: liveCount(t.to_feeder_id)>=500 ? "#EF4444" : "#F1F5F9", fontWeight:700}}>{liveCount(t.to_feeder_id)}</span>
+                  {liveCount(t.to_feeder_id) >= 500 && <span style={{...styles.tag("#EF4444"), marginRight:6}}>تصعيد!</span>}
+                </div>
+              </div>
+            </div>
+            {isActive && <LiveTimer startTime={t.started_at} warnMs={4*3600*1000} dangerMs={24*3600*1000} style={{fontSize:22}} />}
+          </div>
+          {isActive && (
+            <div style={{marginTop:12}}>
+              <button style={styles.btnSm("#10B981")} onClick={() => closeTransfer(t.id)}>إغلاق التحويل — رجع للوضع الطبيعي ✓</button>
+            </div>
+          )}
+        </div>
+      );
+    })}
+
+    {transfers.filter(t=>!t.ended_at).length === 0 && (
+      <div style={{...styles.card, color:"#64748B", fontSize:13}}>لا توجد تحويلات نشطة حالياً ✅</div>
+    )}
+  </div>
+);
+```
+
+}
+
+function NetworkPage() {
+const [expanded, setExpanded] = useState({});
+const substations = […new Set(MOCK_FEEDERS.map(f => f.substation))];
+
+```
+return (
+  <div>
+    <div style={styles.header}>الشبكة — المحطات والمغذيات</div>
+    {substations.map(sub => (
+      <div key={sub} style={styles.card}>
+        <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", cursor:"pointer"}}
+          onClick={() => setExpanded(e => ({...e, [sub]: !e[sub]}))}>
+          <div style={{fontWeight:700, fontSize:15}}>🏭 {sub}</div>
+          <span style={{color:"#64748B"}}>{expanded[sub] ? "▲" : "▼"}</span>
+        </div>
+        {expanded[sub] && (
+          <div style={{marginTop:12}}>
+            {MOCK_FEEDERS.filter(f => f.substation === sub).map(f => {
+              const cnt = liveCount(f.id);
+              const esc = needsEscalation(f.id);
+              const hasTransfer = activeTransfers.some(t => t.from_feeder_id===f.id || t.to_feeder_id===f.id);
+              const hasOutage = activeOutages.some(o => o.feeder_id===f.id);
+              const sens = MOCK_SENSITIVE[f.id] || [];
+              return (
+                <div key={f.id} style={styles.feederCard(esc)}>
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+                    <div style={{fontWeight:700, fontSize:14}}>{f.name}</div>
+                    <div style={{display:"flex", gap:6}}>
+                      {esc && <span style={styles.tag("#EF4444")}>تصعيد</span>}
+                      {hasTransfer && <span style={styles.tag("#F59E0B")}>تحويل نشط</span>}
+                      {hasOutage && <span style={styles.tag("#EF4444")}>انقطاع نشط</span>}
+                    </div>
+                  </div>
+                  <div style={{display:"flex", gap:20, marginTop:6, fontSize:12}}>
+                    <div>
+                      <span style={{color:"#64748B"}}>الأصلي: </span>
+                      <span>{f.base_subscribers}</span>
+                    </div>
+                    <div>
+                      <span style={{color:"#64748B"}}>الفعلي: </span>
+                      <span style={{fontWeight:700, color: cnt >= 500 ? "#EF4444" : "#10B981"}}>{cnt}</span>
+                    </div>
+                    {sens.length > 0 && (
+                      <div style={{color:"#F59E0B"}}>⚠️ حساسون: {sens.length}</div>
+                    )}
+                  </div>
+                  {sens.length > 0 && (
+                    <div style={{fontSize:11, color:"#F59E0B", marginTop:4}}>{sens.join(" · ")}</div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    ))}
+  </div>
+);
+```
+
+}
+
+// ========== MODALS ==========
+
+function NewTaskModal() {
+const [form, setForm] = useState({ type:“fix_terminals”, device_no:””, feeder_id:“f1”, substation:“عرعر ب”, device_type:“3way”, ring1:””, ring2:””, ring3:””, ring4:””, assigned_to: USERS.draftsmen[0], notes:”” });
+const set = (k, v) => setForm(p => ({…p, [k]: v}));
+
+```
+function submit() {
+  if (!form.device_no) return;
+  setTasks(prev => [...prev, {
+    id: "t" + Date.now(),
+    ...form,
+    status: "open",
+    created_by: "أحمد العنزي",
+    created_at: Date.now()
+  }]);
+  setShowNewTask(false);
+}
+
+return (
+  <div style={styles.modal} onClick={e => e.target === e.currentTarget && setShowNewTask(false)}>
+    <div style={styles.modalBox}>
+      <div style={{fontSize:16, fontWeight:700, marginBottom:16}}>مهمة جديدة</div>
+
+      <div style={{marginBottom:12}}>
+        <label style={styles.label}>نوع المهمة</label>
+        <select style={styles.select} value={form.type} onChange={e => set("type", e.target.value)}>
+          {Object.entries(TASK_TYPES).map(([k,v]) => <option key={k} value={k}>{v}</option>)}
+        </select>
+      </div>
+
+      <div style={{marginBottom:12}}>
+        <label style={styles.label}>رقم المعدة</label>
+        <input style={styles.input} value={form.device_no} onChange={e => set("device_no", e.target.value)} placeholder="مثال: 403061" />
+      </div>
+
+      <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:12}}>
+        <div>
+          <label style={styles.label}>المحطة</label>
+          <select style={styles.select} value={form.feeder_id} onChange={e => set("feeder_id", e.target.value)}>
+            {MOCK_FEEDERS.map(f => <option key={f.id} value={f.id}>{f.name} — {f.substation}</option>)}
+          </select>
+        </div>
+        <div>
+          <label style={styles.label}>الرسام المكلّف</label>
+          <select style={styles.select} value={form.assigned_to} onChange={e => set("assigned_to", e.target.value)}>
+            {USERS.draftsmen.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </div>
+      </div>
+
+      {form.type === "fix_terminals" && (
+        <div style={{marginBottom:12}}>
+          <label style={styles.label}>نوع المعدة</label>
+          <div style={{display:"flex", gap:8, marginBottom:12}}>
+            {["3way","4way"].map(t => (
+              <button key={t} style={styles.btnSm(form.device_type===t ? "#3B82F6" : "#64748B")} onClick={() => set("device_type", t)}>{t}</button>
+            ))}
+          </div>
+
+          <label style={styles.label}>الأطراف</label>
+          <div style={{display:"flex", alignItems:"center", gap:8, justifyContent:"flex-start"}}>
+            {form.device_type === "3way" ? (
+              <>
+                <div style={{textAlign:"center"}}>
+                  <div style={{fontSize:10, color:"#64748B", marginBottom:4}}>Ring 2 (يسار)</div>
+                  <input style={{...styles.input, width:90, textAlign:"center"}} value={form.ring2} onChange={e => set("ring2", e.target.value)} placeholder="B314" />
+                </div>
+                <span style={{color:"#334155", fontSize:18}}>—</span>
+                <div style={{textAlign:"center"}}>
+                  <div style={{fontSize:10, color:"#F59E0B", marginBottom:4}}>Ring (المعدة)</div>
+                  <div style={{...styles.ringBox, width:90, borderColor:"#F59E0B"}}>
+                    <div style={{fontSize:12, color:"#F59E0B", fontWeight:700}}>{form.device_no||"رقم المعدة"}</div>
+                  </div>
+                </div>
+                <span style={{color:"#334155", fontSize:18}}>—</span>
+                <div style={{textAlign:"center"}}>
+                  <div style={{fontSize:10, color:"#64748B", marginBottom:4}}>Ring 1 (يمين)</div>
+                  <input style={{...styles.input, width:90, textAlign:"center"}} value={form.ring1} onChange={e => set("ring1", e.target.value)} placeholder="B313" />
+                </div>
+              </>
+            ) : (
+              <>
+                {[["ring4","Ring 4"],["ring3","Ring 3"],["ring2","Ring 2"],["ring1","Ring 1"]].map(([k,l], i) => (
+                  <div key={k} style={{display:"flex", alignItems:"center", gap:8}}>
+                    <div style={{textAlign:"center"}}>
+                      <div style={{fontSize:10, color:"#64748B", marginBottom:4}}>{l}</div>
+                      <input style={{...styles.input, width:75, textAlign:"center"}} value={form[k]} onChange={e => set(k, e.target.value)} placeholder="B..." />
+                    </div>
+                    {i < 3 && <span style={{color:"#334155", fontSize:18}}>—</span>}
+                  </div>
+                ))}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div style={{marginBottom:16}}>
+        <label style={styles.label}>ملاحظات</label>
+        <input style={styles.input} value={form.notes} onChange={e => set("notes", e.target.value)} placeholder="ملاحظات اختيارية" />
+      </div>
+
+      <div style={{display:"flex", gap:8, justifyContent:"flex-end"}}>
+        <button style={styles.btnSm("#64748B")} onClick={() => setShowNewTask(false)}>إلغاء</button>
+        <button style={styles.btn()} onClick={submit}>إنشاء المهمة</button>
+      </div>
+    </div>
+  </div>
+);
+```
+
+}
+
+function NewTransferModal() {
+const [form, setForm] = useState({ type:“emergency”, from_feeder_id:“f1”, to_feeder_id:“f2”, from_device:””, to_device:””, count:””, reason:”” });
+const set = (k,v) => setForm(p => ({…p, [k]:v}));
+
+```
+function submit() {
+  if (!form.count || !form.from_device || !form.to_device) return;
+  setTransfers(prev => [...prev, {
+    id: "tr" + Date.now(),
+    ...form,
+    count: parseInt(form.count),
+    started_at: Date.now(),
+    ended_at: null
+  }]);
+  setShowNewTransfer(false);
+}
+
+const previewFrom = liveCount(form.from_feeder_id) - (parseInt(form.count)||0);
+const previewTo = liveCount(form.to_feeder_id) + (parseInt(form.count)||0);
+
+return (
+  <div style={styles.modal} onClick={e => e.target === e.currentTarget && setShowNewTransfer(false)}>
+    <div style={styles.modalBox}>
+      <div style={{fontSize:16, fontWeight:700, marginBottom:16}}>تسجيل تحويل مؤقت</div>
+
+      <div style={{marginBottom:12}}>
+        <label style={styles.label}>نوع التحويل</label>
+        <div style={{display:"flex", gap:8}}>
+          {[["emergency","تحويل طارئ"],["load_transfer","مناقلة أحمال"]].map(([k,l]) => (
+            <button key={k} style={styles.btnSm(form.type===k ? "#3B82F6" : "#64748B")} onClick={() => set("type",k)}>{l}</button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:12}}>
+        <div>
+          <label style={styles.label}>المغذي الأصلي</label>
+          <select style={styles.select} value={form.from_feeder_id} onChange={e => set("from_feeder_id", e.target.value)}>
+            {MOCK_FEEDERS.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label style={styles.label}>المغذي البديل</label>
+          <select style={styles.select} value={form.to_feeder_id} onChange={e => set("to_feeder_id", e.target.value)}>
+            {MOCK_FEEDERS.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label style={styles.label}>من المعدة رقم</label>
+          <input style={styles.input} value={form.from_device} onChange={e => set("from_device", e.target.value)} placeholder="403050" />
+        </div>
+        <div>
+          <label style={styles.label}>إلى المعدة رقم</label>
+          <input style={styles.input} value={form.to_device} onChange={e => set("to_device", e.target.value)} placeholder="403065" />
+        </div>
+      </div>
+
+      <div style={{marginBottom:12}}>
+        <label style={styles.label}>عدد المشتركين المنقولين</label>
+        <input style={styles.input} type="number" value={form.count} onChange={e => set("count", e.target.value)} placeholder="300" />
+      </div>
+
+      {/* Live preview */}
+      {form.count && (
+        <div style={{background:"#0F172A", borderRadius:8, padding:12, marginBottom:12, fontSize:12}}>
+          <div style={{color:"#64748B", marginBottom:6}}>معاينة التأثير بعد التحويل:</div>
+          <div style={{display:"flex", gap:20}}>
+            <div>
+              <span style={{color:"#64748B"}}>{MOCK_FEEDERS.find(f=>f.id===form.from_feeder_id)?.name}: </span>
+              <span style={{color: previewFrom >= 500 ? "#EF4444" : "#10B981", fontWeight:700}}>{previewFrom}</span>
+            </div>
+            <div>
+              <span style={{color:"#64748B"}}>{MOCK_FEEDERS.find(f=>f.id===form.to_feeder_id)?.name}: </span>
+              <span style={{color: previewTo >= 500 ? "#EF4444" : "#10B981", fontWeight:700}}>{previewTo}</span>
+              {previewTo >= 500 && <span style={{...styles.tag("#EF4444"), marginRight:6}}>⚠️ يستوجب التصعيد!</span>}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div style={{marginBottom:16}}>
+        <label style={styles.label}>سبب التحويل</label>
+        <input style={styles.input} value={form.reason} onChange={e => set("reason", e.target.value)} placeholder="عطل على الكابل..." />
+      </div>
+
+      <div style={{display:"flex", gap:8, justifyContent:"flex-end"}}>
+        <button style={styles.btnSm("#64748B")} onClick={() => setShowNewTransfer(false)}>إلغاء</button>
+        <button style={styles.btn()} onClick={submit}>تسجيل التحويل</button>
+      </div>
+    </div>
+  </div>
+);
+```
+
+}
+
+function NewOutageModal() {
+const [form, setForm] = useState({ feeder_id:“f7”, affected_areas:””, notes:”” });
+const set = (k,v) => setForm(p => ({…p, [k]:v}));
+
+```
+function submit() {
+  const f = MOCK_FEEDERS.find(x => x.id === form.feeder_id);
+  const sens = (MOCK_SENSITIVE[form.feeder_id] || []).length > 0;
+  setOutages(prev => [...prev, {
+    id: "o" + Date.now(),
+    ...form,
+    started_at: Date.now(),
+    ended_at: null,
+    affected_count: liveCount(form.feeder_id),
+    has_sensitive: sens,
+    escalated: needsEscalation(form.feeder_id),
+    phases: [],
+    notifications: needsEscalation(form.feeder_id) ? ["الأزمات والكوارث","التشغيل"] : ["التشغيل"]
+  }]);
+  setShowNewOutage(false);
+}
+
+const esc = needsEscalation(form.feeder_id);
+const cnt = liveCount(form.feeder_id);
+const sens = MOCK_SENSITIVE[form.feeder_id] || [];
+
+return (
+  <div style={styles.modal} onClick={e => e.target === e.currentTarget && setShowNewOutage(false)}>
+    <div style={styles.modalBox}>
+      <div style={{fontSize:16, fontWeight:700, marginBottom:16}}>تسجيل انقطاع جديد</div>
+
+      <div style={{marginBottom:12}}>
+        <label style={styles.label}>المغذي</label>
+        <select style={styles.select} value={form.feeder_id} onChange={e => set("feeder_id", e.target.value)}>
+          {MOCK_FEEDERS.map(f => <option key={f.id} value={f.id}>{f.name} — {f.substation}</option>)}
+        </select>
+      </div>
+
+      {/* Auto-filled preview */}
+      <div style={{background:"#0F172A", borderRadius:8, padding:12, marginBottom:12, fontSize:12}}>
+        <div style={{color:"#64748B", marginBottom:6}}>معلومات تلقائية:</div>
+        <div style={{display:"flex", flexDirection:"column", gap:4}}>
+          <div><span style={{color:"#64748B"}}>عدد المتأثرين الفعلي: </span><span style={{fontWeight:700, color: cnt>=500?"#EF4444":"#F1F5F9"}}>{cnt}</span></div>
+          <div><span style={{color:"#64748B"}}>المشتركون الحساسون: </span><span style={{color: sens.length>0?"#F59E0B":"#10B981"}}>{sens.length>0 ? sens.join("، ") : "لا يوجد"}</span></div>
+          {esc && <div style={styles.tag("#EF4444")}>⚠️ يجب التصعيد لمركز الأزمات تلقائياً</div>}
+        </div>
+      </div>
+
+      <div style={{marginBottom:12}}>
+        <label style={styles.label}>المناطق المتأثرة</label>
+        <input style={styles.input} value={form.affected_areas} onChange={e => set("affected_areas", e.target.value)} placeholder="القدس، الفيصلية..." />
+      </div>
+
+      <div style={{marginBottom:16}}>
+        <label style={styles.label}>ملاحظات</label>
+        <input style={styles.input} value={form.notes} onChange={e => set("notes", e.target.value)} placeholder="ملاحظات..." />
+      </div>
+
+      <div style={{display:"flex", gap:8, justifyContent:"flex-end"}}>
+        <button style={styles.btnSm("#64748B")} onClick={() => setShowNewOutage(false)}>إلغاء</button>
+        <button style={styles.btn("#EF4444")} onClick={submit}>تسجيل الانقطاع</button>
+      </div>
+    </div>
+  </div>
+);
+```
+
+}
+
+const pages = { dashboard: <Dashboard />, tasks: <TasksPage />, outages: <OutagesPage />, transfers: <TransfersPage />, network: <NetworkPage /> };
+
+return (
+<div style={styles.app}>
+{/* Sidebar */}
+<div style={styles.sidebar}>
+<div style={styles.logo}>
+<div style={styles.logoText}>⚡ نظام إدارة<br/>شبكة التوزيع</div>
+</div>
+{navItems.map(n => (
+<div key={n.key} style={styles.navItem(page===n.key)} onClick={() => setPage(n.key)}>
+<span>{n.icon}</span>
+<span>{n.label}</span>
+{n.key===“tasks” && openTasks.length>0 && <span style={{marginRight:“auto”, background:”#3B82F6”, color:”#fff”, borderRadius:10, padding:“0 6px”, fontSize:10}}>{openTasks.length}</span>}
+{n.key===“outages” && activeOutages.length>0 && <span style={{marginRight:“auto”, background:”#EF4444”, color:”#fff”, borderRadius:10, padding:“0 6px”, fontSize:10}}>{activeOutages.length}</span>}
+{n.key===“transfers” && activeTransfers.length>0 && <span style={{marginRight:“auto”, background:”#F59E0B”, color:”#fff”, borderRadius:10, padding:“0 6px”, fontSize:10}}>{activeTransfers.length}</span>}
+</div>
+))}
+<div style={{marginTop:“auto”, padding:“16px”, borderTop:“1px solid #1E293B”}}>
+<div style={{fontSize:12, color:”#94A3B8”}}>أحمد العنزي</div>
+<div style={{fontSize:10, color:”#475569”}}>مرحّل</div>
+</div>
+</div>
+
+```
+  {/* Main */}
+  <div style={styles.main}>
+    {pages[page]}
+  </div>
+
+  {/* Modals */}
+  {showNewTask && <NewTaskModal />}
+  {showNewTransfer && <NewTransferModal />}
+  {showNewOutage && <NewOutageModal />}
+</div>
+```
+
+);
+}
